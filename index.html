@@ -1,286 +1,222 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#0e0e0d" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="LYFT RESET" />
-  <meta name="description" content="Dopamine Reset 21 Days — Chi Dat" />
-  <link rel="manifest" href="manifest.json" />
-  <link rel="apple-touch-icon" href="icons/icon-192.png" />
-  <link rel="stylesheet" href="style.css" />
-  <title>LYFT — DOPAMINE RESET 21</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+  <meta name="theme-color" content="#0a0a0a"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="21D RESET"/>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+  <link rel="icon" href="favicon.ico"/>
+  <link rel="stylesheet" href="style.css"/>
+  <title>21D — Dopamine Reset</title>
 </head>
 <body>
 
-<!-- ══════════════════════════════════════
-     OVERLAYS
-══════════════════════════════════════ -->
+<!-- ─── OVERLAYS (outside app, no z-index conflicts) ─── -->
 
-<!-- XP Flash -->
 <div class="xp-flash" id="xpFlash">+0 XP</div>
 <div class="dmg-popup" id="dmgPopup">-50 XP</div>
-
-<!-- Toast -->
 <div class="toast" id="toast"></div>
 
-<!-- Level Up Overlay -->
-<div class="levelup-overlay" id="luOverlay">
-  <div class="levelup-box">
-    <div class="lu-pre">LEVEL UP</div>
+<!-- Level Up -->
+<div class="overlay" id="luOverlay">
+  <div class="lu-box">
+    <div class="lu-label">LEVEL UP</div>
     <div class="lu-num" id="luNum">2</div>
     <div class="lu-name" id="luName">Awakening</div>
-    <div class="lu-narr" id="luNarr">Đang tải...</div>
     <div class="lu-desc" id="luDesc"></div>
-    <button class="btn btn-xp" onclick="closeLU()">TIẾP TỤC →</button>
+    <button class="btn-primary" onclick="closeLU()">Tiếp tục →</button>
   </div>
 </div>
 
-<!-- Emergency Overlay -->
-<div class="emergency" id="emergency">
-  <div class="em-title">DỪNG LẠI.</div>
-  <div class="em-sub">ANTI-RELAPSE PROTOCOL</div>
-  <div class="em-step"><div class="em-n">1</div><div><div class="em-t">Đặt điện thoại xuống bàn.</div><div class="em-d">Không cầm. Không nhìn. Đứng dậy ngay.</div></div></div>
-  <div class="em-step"><div class="em-n">2</div><div><div class="em-t">Ra ngoài. Uống nước lạnh.</div><div class="em-d">Kích hoạt hệ phó giao cảm. Làm trước bước 3.</div></div></div>
-  <div class="cd-box">
-    <div class="cd-num" id="cdNum">20:00</div>
-    <div class="cd-lbl">CHỈ CẦN TỒN TẠI QUA ĐÂY</div>
-    <div class="cd-btns">
-      <button class="btn btn-outline" onclick="startCD()">BẮT ĐẦU</button>
-      <button class="btn btn-outline" onclick="resetCD()">RESET</button>
+<!-- Emergency -->
+<div class="overlay" id="emergency">
+  <div class="em-wrap">
+    <div class="em-title">Dừng lại.</div>
+    <div class="em-sub">Anti-Relapse Protocol</div>
+    <div class="em-step">
+      <div class="em-n">1</div>
+      <div><strong>Đặt điện thoại xuống.</strong><br>Đứng dậy khỏi chỗ ngồi ngay bây giờ.</div>
     </div>
+    <div class="em-step">
+      <div class="em-n">2</div>
+      <div><strong>Ra ngoài. Uống nước lạnh.</strong><br>Kích hoạt hệ phó giao cảm.</div>
+    </div>
+    <div class="cd-box">
+      <div class="cd-num" id="cdNum">20:00</div>
+      <div class="cd-lbl">Chỉ cần tồn tại qua đây</div>
+      <div class="cd-btns">
+        <button class="btn-outline" onclick="startCD()">Bắt đầu</button>
+        <button class="btn-outline" onclick="resetCD()">Reset</button>
+      </div>
+    </div>
+    <div class="em-step">
+      <div class="em-n">3</div>
+      <div><strong>Nhớ lại lý do.</strong><br>"Tao muốn dậy sớm, đọc sách, nghĩ thiện."</div>
+    </div>
+    <div class="em-step">
+      <div class="em-n">4</div>
+      <div><strong>Craving đạt đỉnh rồi tự hạ.</strong><br>15–20 phút. Chỉ cần chờ.</div>
+    </div>
+    <button class="btn-ghost" onclick="closeEM()" style="margin-top:20px;width:100%">Tôi đã qua được ✓</button>
   </div>
-  <div class="em-step"><div class="em-n">3</div><div><div class="em-t">Nhớ lại lý do mày ở đây.</div><div class="em-d">"Tao muốn là người dậy sớm, đọc sách, nghĩ thiện."<br>Phiên bản 2023 vẫn còn đó. Anh ta đang chờ.</div></div></div>
-  <div class="em-step"><div class="em-n">4</div><div><div class="em-t">Craving đạt đỉnh rồi tự hạ.</div><div class="em-d">15-20 phút. Không cần thắng nó — chỉ cần chờ.</div></div></div>
-  <button class="btn btn-outline" onclick="closeEM()" style="margin-top:12px;width:100%">TÔI ĐÃ QUA ĐƯỢC ✓</button>
 </div>
 
 <!-- Relapse Modal -->
-<div class="modal" id="relapseModal">
-  <div class="modal-sheet">
-    <div class="modal-handle"></div>
-    <div class="modal-title" style="color:var(--danger)">RELAPSE LOG</div>
-    <div class="alert-box" style="margin-bottom:12px">Ghi nhận relapse là dữ liệu — không phải thất bại. -50 XP, streak reset. Tiến trình còn nguyên.</div>
-    <select class="inp" id="rType">
+<div class="modal-backdrop" id="relapseModal" onclick="handleBackdrop(event,'relapseModal')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" style="color:var(--red)">Log Relapse</div>
+    <p class="sheet-note">Ghi nhận là dữ liệu — không phải thất bại. −50 XP, streak reset.</p>
+    <select class="field" id="rType">
       <option value="cannabis">Mua / hút cần sa</option>
       <option value="sex">Mại dâm</option>
-      <option value="phone">Điện thoại >4h</option>
+      <option value="phone">Điện thoại &gt;4h</option>
       <option value="popper">Popper / thuốc cương</option>
       <option value="other">Khác</option>
     </select>
-    <textarea class="inp" id="rNote" placeholder="Trigger? Cảm xúc lúc đó? Bối cảnh? Điểm quyết định?"></textarea>
-    <button class="btn btn-danger" onclick="logRelapse()">GHI NHẬN</button>
-    <button class="btn btn-outline" onclick="closeModal('relapseModal')" style="margin-top:6px">HỦY</button>
+    <textarea class="field" id="rNote" rows="3" placeholder="Trigger? Cảm xúc lúc đó? Bối cảnh?"></textarea>
+    <button class="btn-danger" onclick="logRelapse()">Ghi nhận</button>
+    <button class="btn-ghost" onclick="closeModal('relapseModal')" style="margin-top:8px;width:100%">Hủy</button>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════
-     MAIN APP
-══════════════════════════════════════ -->
-<div class="app">
+<!-- ─── APP SHELL ─── -->
+<div class="app" id="app">
 
-  <!-- APP HEADER -->
+  <!-- HEADER -->
   <header class="app-header">
-    <div class="header-left">
-      <div class="logo">LYFT</div>
-      <div class="logo-sub">DOPAMINE RESET × 21</div>
+    <div class="logo-wrap">
+      <img src="icons/icon-192.png" alt="21D" class="logo-img"/>
     </div>
     <div class="header-right">
-      <div class="header-day" id="headerDay">1</div>
-      <div class="header-day-lbl">/ 21</div>
+      <div class="day-badge">
+        <span class="day-num" id="headerDay">1</span>
+        <span class="day-of">/21</span>
+      </div>
     </div>
   </header>
 
-  <!-- PROGRESS BAR -->
-  <div class="progress-section">
+  <!-- PROGRESS STRIP -->
+  <div class="progress-strip">
     <div class="prog-dots" id="progDots"></div>
-    <div class="prog-meta">
-      <span>NGÀY 1</span>
-      <span id="progStreakLbl">0 SẠCH</span>
-      <span>NGÀY 21</span>
-    </div>
   </div>
 
-  <!-- TAB BAR -->
-  <nav class="tab-bar" id="tabBar">
-    <button class="tab active" data-tab="dashboard" onclick="switchTab('dashboard',this)">CHAR</button>
-    <button class="tab" data-tab="checkin" onclick="switchTab('checkin',this)">QUESTS</button>
-    <button class="tab" data-tab="boss" onclick="switchTab('boss',this)">BOSS</button>
-    <button class="tab" data-tab="journal" onclick="switchTab('journal',this)">JURNAL</button>
-    <button class="tab" data-tab="history" onclick="switchTab('history',this)">LOG</button>
-  </nav>
+  <!-- CONTENT SCROLL AREA -->
+  <main class="scroll-area" id="scrollArea">
 
-  <!-- CONTENT -->
-  <main class="content">
-
-    <!-- ═══ DASHBOARD ═══ -->
+    <!-- ══ PANEL: NHÂN VẬT ══ -->
     <section class="panel active" id="panel-dashboard">
 
-      <!-- Narrator -->
-      <div class="narrator-panel" id="mainNarrator">
-        <div class="narrator-header">
-          <span class="narrator-dot"></span>
-          <span class="narrator-label">AI NARRATOR</span>
-          <span class="narrator-day" id="narrDay">NGÀY 1</span>
-        </div>
-        <div class="narrator-text" id="narrText">
-          <span class="loading-text">Đang phân tích tiến trình <span class="ldots"><span>.</span><span>.</span><span>.</span></span></span>
-        </div>
-        <div class="narrator-footer">
-          <button class="regen-btn" onclick="generateNarrative(true)">↻ REGENERATE</button>
-          <span class="regen-meta" id="narrMeta"></span>
-        </div>
-      </div>
-
-      <!-- Char Row -->
-      <div class="char-row">
+      <!-- Character card -->
+      <div class="char-card">
+        <div class="avatar" id="avatarEl">⚔</div>
         <div class="char-info">
-          <div class="char-name">CHÍ ĐẠT</div>
-          <div class="char-title" id="charTitle">DISTRACTED MIND</div>
-        </div>
-        <div class="level-badge">
-          <div class="level-num" id="levelNum">1</div>
-          <div class="level-lbl">LEVEL</div>
-        </div>
-      </div>
-
-      <!-- XP Bar -->
-      <div class="xp-section">
-        <div class="xp-meta-row">
-          <span id="xpCurrent">0 XP</span>
-          <span id="xpToNext">→ 100 XP to Lv.2</span>
-        </div>
-        <div class="xp-track">
-          <div class="xp-fill" id="xpFill" style="width:0%"></div>
-        </div>
-        <div class="xp-meta-row">
-          <span class="xp-total" id="xpTotal">TOTAL: 0 XP</span>
-          <span id="xpNextName"></span>
-        </div>
-      </div>
-
-      <!-- Streak Row -->
-      <div class="stat-row">
-        <div class="stat-box">
-          <div class="stat-num good" id="streakEl">0🔥</div>
-          <div class="stat-lbl">STREAK</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-num xp-col" id="todayXpEl">0</div>
-          <div class="stat-lbl">XP TODAY</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-num warn" id="dopScoreEl">—</div>
-          <div class="stat-lbl">DOPAMINE SCORE</div>
-        </div>
-      </div>
-
-      <!-- Evolution -->
-      <div class="section-label">EVOLUTION PATH</div>
-      <div class="card" style="padding:10px">
-        <div class="evo-row" id="evoRow"></div>
-      </div>
-
-      <!-- Character Stats -->
-      <div class="section-label">CHARACTER STATS</div>
-      <div class="stats-grid" id="statsGrid"></div>
-
-      <!-- Dopamine Score Card -->
-      <div class="section-label">DOPAMINE STABILITY</div>
-      <div class="card score-card">
-        <div class="score-ring-wrap">
-          <svg class="score-ring" viewBox="0 0 80 80">
-            <circle cx="40" cy="40" r="32" fill="none" stroke="var(--border)" stroke-width="6"/>
-            <circle cx="40" cy="40" r="32" fill="none" stroke="var(--good)" stroke-width="6"
-              stroke-dasharray="201" stroke-dashoffset="201"
-              stroke-linecap="round" transform="rotate(-90 40 40)"
-              id="scoreRing" style="transition:stroke-dashoffset .8s ease"/>
-            <text x="40" y="45" text-anchor="middle" font-family="Arial" font-size="18" font-weight="bold"
-              fill="var(--antique)" id="scoreRingText">0</text>
-          </svg>
-          <div class="score-info">
-            <div class="score-grade" id="scoreGrade">—</div>
-            <div class="score-desc" id="scoreDesc">Chưa có check-in hôm nay.</div>
+          <div class="char-name">Chí Đạt</div>
+          <div class="char-subtitle">
+            <span class="lv-badge">LV <span id="levelNum">1</span></span>
+            <span class="char-title" id="charTitle">Distracted Mind</span>
+          </div>
+          <div class="xp-track">
+            <div class="xp-fill" id="xpFill" style="width:0%"></div>
+          </div>
+          <div class="xp-label-row">
+            <span id="xpCurrent">0 XP</span>
+            <span id="xpToNext">→ Lv.2</span>
           </div>
         </div>
       </div>
 
+      <!-- Today missions (replaces narrator) -->
+      <div class="section-title">Hôm nay</div>
+      <div class="mission-card" id="missionCard">
+        <!-- rendered by JS -->
+      </div>
+
+      <!-- Stats row -->
+      <div class="stats-strip">
+        <div class="stat-pill big">
+          <div class="sp-val good" id="streakEl">0</div>
+          <div class="sp-fire">🔥</div>
+          <div class="sp-lbl">Streak</div>
+        </div>
+        <div class="stat-pill">
+          <div class="sp-val gold" id="todayXpEl">0</div>
+          <div class="sp-lbl">XP hôm nay</div>
+        </div>
+        <div class="stat-pill">
+          <div class="sp-val" id="focusLvEl">—</div>
+          <div class="sp-lbl">Tập trung</div>
+        </div>
+      </div>
+
+      <!-- Evolution path -->
+      <div class="section-title">Tiến hóa</div>
+      <div class="evo-row" id="evoRow"></div>
+
+      <!-- Character stats -->
+      <div class="section-title">Chỉ số</div>
+      <div class="stats-list" id="statsGrid"></div>
+
       <!-- Actions -->
-      <button class="btn btn-danger" onclick="openEM()" style="margin-top:4px">🆘 ANTI-RELAPSE MODE</button>
-      <button class="btn btn-outline" onclick="openModal('relapseModal')" style="margin-top:6px">⚠ LOG RELAPSE</button>
+      <div class="action-row">
+        <button class="btn-danger-sm" onclick="openEM()">🆘 Khẩn cấp</button>
+        <button class="btn-ghost-sm" onclick="openModal('relapseModal')">⚠ Log Relapse</button>
+      </div>
 
     </section>
 
-    <!-- ═══ DAILY CHECK-IN / QUESTS ═══ -->
+    <!-- ══ PANEL: NHIỆM VỤ ══ -->
     <section class="panel" id="panel-checkin">
 
-      <!-- Quest Narrator -->
-      <div class="narrator-panel" id="questNarrator">
-        <div class="narrator-header">
-          <span class="narrator-dot"></span>
-          <span class="narrator-label">MISSION BRIEF</span>
-          <span class="narrator-day" id="questNarrDay">NGÀY 1</span>
-        </div>
-        <div class="narrator-text" id="questNarrText">Đang tải...</div>
-      </div>
-
-      <div class="section-label">DAILY QUESTS — NGÀY <span id="questDayNum">1</span></div>
+      <div class="section-title">Nhiệm vụ ngày <span id="questDayNum">1</span></div>
       <div id="dqList"></div>
 
-      <div class="section-label">WEEKLY QUESTS</div>
+      <div class="section-title" style="margin-top:24px">Nhiệm vụ tuần</div>
       <div id="wqList"></div>
 
-      <div class="section-label">REWARDS UNLOCKED</div>
+      <div class="section-title" style="margin-top:24px">Phần thưởng</div>
       <div id="rewardList"></div>
 
-      <button class="btn btn-primary" onclick="submitDay()" style="margin-top:12px">GHI NHẬN NGÀY → NHẬN XP</button>
-      <button class="btn btn-outline" onclick="openModal('relapseModal')" style="margin-top:6px">⚠ LOG RELAPSE</button>
+      <div style="height:16px"></div>
+      <button class="btn-primary" onclick="submitDay()">Ghi nhận ngày → Nhận XP</button>
+      <button class="btn-ghost" onclick="openModal('relapseModal')" style="margin-top:8px;width:100%">⚠ Log Relapse</button>
 
     </section>
 
-    <!-- ═══ BOSS BATTLES ═══ -->
+    <!-- ══ PANEL: BOSS ══ -->
     <section class="panel" id="panel-boss">
 
-      <div class="narrator-panel" id="bossNarrator">
-        <div class="narrator-header">
-          <span class="narrator-dot" style="background:var(--danger)"></span>
-          <span class="narrator-label" style="color:var(--danger)">FIELD REPORT</span>
-        </div>
-        <div class="narrator-text" id="bossNarrText">Đang phân tích chiến trường...</div>
-      </div>
-
-      <div class="section-label">BOSS BATTLES — DEFEAT YOUR DEMONS</div>
-      <div class="info-box" style="margin-bottom:12px">Mỗi lần vượt qua trigger trong thực tế → nhấn Counter-Attack. Boss mất HP. Defeat 3 lần → Boss controlled.</div>
+      <div class="section-title">Boss Battles</div>
+      <p class="section-note">Vượt qua trigger trong thực tế → nhấn Counter-Attack → Boss mất HP.</p>
       <div id="bossList"></div>
 
-      <!-- Achievements -->
-      <div class="section-label">ACHIEVEMENTS</div>
+      <div class="section-title" style="margin-top:24px">Thành tích</div>
       <div class="ach-grid" id="achGrid"></div>
 
     </section>
 
-    <!-- ═══ JOURNAL ═══ -->
+    <!-- ══ PANEL: HÀNH TRÌNH (Journal) ══ -->
     <section class="panel" id="panel-journal">
 
-      <!-- Journal Stats -->
       <div class="jstats" id="jstats"></div>
 
-      <!-- Compose -->
-      <div class="journal-compose">
+      <div class="compose-card">
         <div class="jtype-row">
-          <button class="jtype active" onclick="setJType('daily',this)">📝 Daily</button>
+          <button class="jtype active" onclick="setJType('daily',this)">📝 Ngày</button>
           <button class="jtype win-jtype" onclick="setJType('win',this)">⚡ Win</button>
           <button class="jtype urge-jtype" onclick="setJType('urge',this)">🔥 Urge</button>
-          <button class="jtype insight-jtype" onclick="setJType('insight',this)">💡 Insight</button>
+          <button class="jtype insight-jtype" onclick="setJType('insight',this)">💡 Nhận ra</button>
           <button class="jtype relapse-jtype" onclick="setJType('relapse',this)">⚠ Relapse</button>
         </div>
         <textarea class="journal-ta" id="journalText" placeholder="Viết gì đó về hôm nay..." maxlength="2000" oninput="updateCharCount()"></textarea>
-        <div class="journal-footer">
+        <div class="compose-footer">
           <div>
             <div class="char-count"><span id="charCount">0</span>/2000</div>
-            <div class="mood-row" id="moodPicker">
+            <div class="mood-row">
               <button class="jmood" onclick="selectJMood('😵',this)">😵</button>
               <button class="jmood" onclick="selectJMood('😔',this)">😔</button>
               <button class="jmood" onclick="selectJMood('😐',this)">😐</button>
@@ -288,28 +224,22 @@
               <button class="jmood" onclick="selectJMood('💪',this)">💪</button>
             </div>
           </div>
-          <button class="journal-save-btn" onclick="saveJournalEntry()">LƯU</button>
+          <button class="btn-save" onclick="saveJournalEntry()">Lưu</button>
         </div>
       </div>
 
-      <!-- AI Toggle -->
-      <div class="ai-toggle-row">
-        <label class="toggle-wrap">
-          <div class="toggle-track active" id="aiTrack" onclick="toggleAI()">
-            <div class="toggle-thumb" id="aiThumb"></div>
-          </div>
-          <span class="toggle-label">AI phản hồi nhật ký</span>
-        </label>
+      <div class="ai-row">
+        <span class="ai-lbl">AI phản hồi</span>
+        <div class="toggle" id="aiToggle" onclick="toggleAI()"><div class="toggle-thumb"></div></div>
       </div>
 
-      <!-- Filters -->
-      <div class="jfilter-row">
-        <button class="jfilter active" onclick="filterJ('all',this)">Tất cả</button>
-        <button class="jfilter" onclick="filterJ('daily',this)">📝 Daily</button>
-        <button class="jfilter" onclick="filterJ('win',this)">⚡ Win</button>
-        <button class="jfilter" onclick="filterJ('urge',this)">🔥 Urge</button>
-        <button class="jfilter" onclick="filterJ('insight',this)">💡 Insight</button>
-        <button class="jfilter" onclick="filterJ('relapse',this)">⚠ Relapse</button>
+      <div class="filter-row">
+        <button class="filter-btn active" onclick="filterJ('all',this)">Tất cả</button>
+        <button class="filter-btn" onclick="filterJ('daily',this)">Ngày</button>
+        <button class="filter-btn" onclick="filterJ('win',this)">Win</button>
+        <button class="filter-btn" onclick="filterJ('urge',this)">Urge</button>
+        <button class="filter-btn" onclick="filterJ('insight',this)">Nhận ra</button>
+        <button class="filter-btn" onclick="filterJ('relapse',this)">Relapse</button>
       </div>
 
       <div id="journalEntries">
@@ -318,26 +248,15 @@
 
     </section>
 
-    <!-- ═══ HISTORY / LOG ═══ -->
+    <!-- ══ PANEL: DỮ LIỆU (History) ══ -->
     <section class="panel" id="panel-history">
 
-      <div class="section-label">BATTLE LOG — LỊCH SỬ HÀNH TRÌNH</div>
-      <div class="narrator-panel" style="margin-bottom:12px">
-        <div class="narrator-header">
-          <span class="narrator-dot"></span>
-          <span class="narrator-label">NARRATIVE ARCHIVE</span>
-        </div>
-        <div class="narrator-text" style="font-size:11px;opacity:.7">Mỗi ngày được ghi lại như một chapter. Narrative được AI tạo ra dựa trên hành vi thực tế.</div>
-      </div>
-
-      <!-- 21-day grid -->
-      <div class="section-label">21-DAY OVERVIEW</div>
+      <div class="section-title">Tổng quan 21 ngày</div>
       <div class="grid21" id="grid21"></div>
 
-      <!-- Weekly stats -->
-      <div class="stat-row" style="margin-bottom:12px" id="weekStats"></div>
+      <div class="stats-strip" id="weekStats" style="margin-bottom:20px"></div>
 
-      <!-- Narrative history -->
+      <div class="section-title">Lịch sử</div>
       <div id="narrativeHistory">
         <div class="empty-state">Hoàn thành ngày đầu tiên để bắt đầu.</div>
       </div>
@@ -348,29 +267,29 @@
 
   <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
-    <button class="bni active" data-panel="dashboard" onclick="switchPanel('dashboard',this)">
+    <button class="bni active" onclick="switchPanel('dashboard',this)">
       <span class="bni-icon">⚔️</span>
-      <span class="bni-label">Nhân Vật</span>
+      <span class="bni-lbl">Nhân vật</span>
     </button>
-    <button class="bni" data-panel="checkin" onclick="switchPanel('checkin',this)">
-      <span class="bni-icon">📜</span>
-      <span class="bni-label">Quests</span>
+    <button class="bni" onclick="switchPanel('checkin',this)">
+      <span class="bni-icon">✅</span>
+      <span class="bni-lbl">Nhiệm vụ</span>
     </button>
-    <button class="bni" data-panel="boss" onclick="switchPanel('boss',this)">
+    <button class="bni" onclick="switchPanel('boss',this)">
       <span class="bni-icon">💀</span>
-      <span class="bni-label">Boss</span>
+      <span class="bni-lbl">Boss</span>
     </button>
-    <button class="bni" data-panel="journal" onclick="switchPanel('journal',this)">
+    <button class="bni" onclick="switchPanel('journal',this)">
       <span class="bni-icon">✍️</span>
-      <span class="bni-label">Nhật Ký</span>
+      <span class="bni-lbl">Hành trình</span>
     </button>
-    <button class="bni" data-panel="history" onclick="switchPanel('history',this)">
-      <span class="bni-icon">📖</span>
-      <span class="bni-label">Log</span>
+    <button class="bni" onclick="switchPanel('history',this)">
+      <span class="bni-icon">📊</span>
+      <span class="bni-lbl">Dữ liệu</span>
     </button>
   </nav>
 
-</div><!-- end .app -->
+</div>
 
 <script src="script.js"></script>
 </body>
