@@ -72,7 +72,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: calc(var(--safe-t) + 16px) 20px 12px;
+  padding: calc(var(--safe-t) + 12px) 20px 12px;
 }
 
 .logo-wrap {
@@ -81,10 +81,10 @@ body {
 }
 
 .logo-img {
-  height: 52px;
-  width: 52px;
-  border-radius: 12px;
-  object-fit: cover;
+  height: 48px;
+  width: 48px;
+  border-radius: 0;
+  object-fit: contain;
   display: block;
 }
 
@@ -98,15 +98,15 @@ body {
 }
 
 .day-num {
-  font-size: 36px;
+  font-size: 40px;
   font-weight: 700;
-  letter-spacing: -1.5px;
+  letter-spacing: -2px;
   color: var(--gold);
   line-height: 1;
 }
 
 .day-of {
-  font-size: 15px;
+  font-size: 16px;
   color: var(--gray);
   font-weight: 400;
 }
