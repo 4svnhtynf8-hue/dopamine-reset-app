@@ -36,11 +36,11 @@ const LEVELS = [
 ];
 
 const EVOLUTIONS = [
-  { n:'DETOX',  r:[1,4],  i:'💀' },
-  { n:'STABLE', r:[5,8],  i:'🧊' },
-  { n:'REWIRE', r:[9,14], i:'⚡' },
-  { n:'BUILD',  r:[15,18],i:'🏗️' },
-  { n:'SHIFT',  r:[19,21],i:'🔥' },
+  { n:'GIẢI ĐỘC',        r:[1,4],  i:'💀' },
+  { n:'ỔN ĐỊNH',         r:[5,8],  i:'🧊' },
+  { n:'TÁI LẬP',         r:[9,14], i:'⚡' },
+  { n:'XÂY DỰNG',        r:[15,18],i:'🏗️' },
+  { n:'CHUYỂN HÓA',      r:[19,21],i:'🔥' },
 ];
 
 const DAILY_QUESTS = [
@@ -99,11 +99,11 @@ const REWARDS = [
 ];
 
 const JOURNAL_TYPES = {
-  daily:   { label:'Daily',      color:'var(--antique-d)', bg:'rgba(245,240,232,.06)' },
-  win:     { label:'Win',        color:'var(--good)',       bg:'var(--good-d)'         },
-  urge:    { label:'Urge',       color:'var(--warn)',       bg:'var(--warn-d)'         },
-  insight: { label:'Insight',    color:'var(--narr)',       bg:'var(--narr-d)'         },
-  relapse: { label:'Relapse',    color:'var(--danger)',     bg:'var(--danger-d)'       },
+  daily:   { label:'Ngày',    color:'var(--gray)',   bg:'rgba(255,255,255,.04)' },
+  win:     { label:'Win',     color:'var(--green)',  bg:'var(--green-bg)'       },
+  urge:    { label:'Urge',    color:'var(--orange)', bg:'rgba(255,159,10,.1)'   },
+  insight: { label:'Nhận ra', color:'var(--blue)',   bg:'rgba(10,132,255,.1)'   },
+  relapse: { label:'Relapse', color:'var(--red)',    bg:'var(--red-bg)'         },
 };
 
 const JOURNAL_PLACEHOLDERS = {
@@ -219,26 +219,35 @@ function renderChar() {
   const ld = getLvd();
   const xp = getXPProg();
 
-  el('headerDay').textContent  = S.currentDay;
-  el('charTitle').textContent  = ld.n.toUpperCase();
-  el('levelNum').textContent   = ld.idx + 1;
-  el('xpCurrent').textContent  = (S.totalXP - xp.cb) + ' XP';
-  el('xpToNext').textContent   = '→ ' + xp.toNext + ' XP to Lv.' + (ld.idx + 2);
-  el('xpFill').style.width     = xp.pct + '%';
-  el('xpTotal').textContent    = 'TOTAL: ' + S.totalXP + ' XP';
-  el('xpNextName').textContent = xp.nextName;
-  el('streakEl').textContent   = S.streak + '🔥';
-  el('todayXpEl').textContent  = S.todayXP || 0;
-  el('progStreakLbl').textContent = S.streak + ' SẠCH';
-  el('narrDay').textContent    = 'NGÀY ' + S.currentDay;
+  // Header
+  if (el('headerDay')) el('headerDay').textContent = S.currentDay;
+
+  // Character card
+  if (el('charTitle')) el('charTitle').textContent = ld.n;
+  if (el('levelNum'))  el('levelNum').textContent  = ld.idx + 1;
+
+  // XP
+  if (el('xpCurrent')) el('xpCurrent').textContent = (S.totalXP - xp.cb) + ' XP';
+  if (el('xpToNext'))  el('xpToNext').textContent  = '→ Lv.' + (ld.idx + 2) + ' (' + xp.toNext + ' XP)';
+  if (el('xpFill'))    el('xpFill').style.width    = xp.pct + '%';
+
+  // Stats strip
+  if (el('streakEl'))   el('streakEl').textContent  = S.streak;
+  if (el('todayXpEl'))  el('todayXpEl').textContent = S.todayXP || 0;
+
+  // Focus level (replaces dopamine score)
+  const checked = S.dailyChecked['D' + S.currentDay] || [];
+  const score   = calcDopamineScore(checked);
+  const focusEl = el('focusLvEl');
+  if (focusEl) {
+    focusEl.textContent = score || '—';
+    focusEl.className   = 'sp-val' + (score >= 70 ? ' good' : score >= 40 ? ' warn' : '');
+  }
 
   buildProgDots();
   buildEvo();
   buildStats();
-
-  // Update score ring from current checked state
-  const checked = S.dailyChecked['D' + S.currentDay] || [];
-  updateScoreRing(calcDopamineScore(checked));
+  renderMissionCard();
 }
 
 function buildProgDots() {
@@ -277,26 +286,72 @@ function buildStats() {
   const rc      = S.relapses.length;
 
   const STATS = [
-    { n:'FOCUS',            v: Math.min(100, (S.totalDW||0)/3 + medDays*3),                            c:'var(--xp)'    },
-    { n:'DISCIPLINE',       v: Math.min(100, S.streak*5 + S.currentDay*2),                             c:'var(--antique)' },
-    { n:'ENERGY',           v: Math.min(100, woDays*5 + 20),                                           c:'var(--good)'  },
+    { n:'FOCUS',            v: Math.min(100, (S.totalDW||0)/3 + medDays*3),                            c:'var(--gold)'    },
+    { n:'DISCIPLINE',       v: Math.min(100, S.streak*5 + S.currentDay*2),                             c:'var(--white2)' },
+    { n:'ENERGY',           v: Math.min(100, woDays*5 + 20),                                           c:'var(--green)'  },
     { n:'CALMNESS',         v: Math.min(100, medDays*6 + Math.max(0, 40 - rc*10)),                     c:'#7ab8d4'      },
-    { n:'SELF-CONTROL',     v: Math.max(0, Math.min(100, S.streak*6 + S.currentDay*3 - rc*15)),        c:'var(--warn)'  },
+    { n:'SELF-CONTROL',     v: Math.max(0, Math.min(100, S.streak*6 + S.currentDay*3 - rc*15)),        c:'var(--orange)'  },
     { n:'DOPAMINE STA.',    v: Math.max(0, Math.min(100, S.currentDay*4 + S.streak*3 - rc*20)),        c:'#b87ab8'      },
   ];
 
   wrap.innerHTML = STATS.map(s => {
     const v = Math.round(Math.max(0, s.v));
-    return `<div class="stat-item">
-      <div class="stat-item-name">
-        <span>${s.n}</span>
-        <span class="stat-item-val" style="color:${s.c}">${v}</span>
-      </div>
-      <div class="stat-bar-track">
-        <div class="stat-bar-fill" style="width:${v}%;background:${s.c}"></div>
-      </div>
+    return `<div class="stat-row-item">
+      <div class="stat-row-label">${s.n}</div>
+      <div class="stat-row-bar"><div class="stat-row-fill" style="width:${v}%;background:${s.c}"></div></div>
+      <div class="stat-row-val" style="color:${s.c}">${v}</div>
     </div>`;
   }).join('');
+}
+
+
+// ════════════════════════════════════
+// RENDER — MISSION CARD (replaces narrator on dashboard)
+// ════════════════════════════════════
+
+const MISSIONS = [
+  { id:'meditate',    label:'Thiền định',         xp:10 },
+  { id:'no_cannabis', label:'Không mua cần sa',    xp:30 },
+  { id:'no_sex',      label:'Không mại dâm',       xp:30 },
+  { id:'workout',     label:'Tập luyện',           xp:20 },
+  { id:'sleep',       label:'Ngủ trước 11:30',     xp:15 },
+  { id:'read',        label:'Đọc sách',            xp:15 },
+  { id:'deep_work',   label:'Deep work',           xp:25 },
+];
+
+function renderMissionCard() {
+  const wrap = el('missionCard');
+  if (!wrap) return;
+  const checked = S.dailyChecked['D' + S.currentDay] || [];
+  wrap.innerHTML = MISSIONS.map(m => {
+    const done = checked.includes(m.id);
+    return `<div class="mission-item${done ? ' done' : ''}" onclick="toggleMission('${m.id}',this)">
+      <div class="mission-check"></div>
+      <div class="mission-label">${m.label}</div>
+      <div class="mission-xp">+${m.xp}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleMission(id, itemEl) {
+  const key = 'D' + S.currentDay;
+  if (!S.dailyChecked[key]) S.dailyChecked[key] = [];
+  const idx = S.dailyChecked[key].indexOf(id);
+  if (idx > -1) {
+    S.dailyChecked[key].splice(idx, 1);
+    itemEl.classList.remove('done');
+  } else {
+    S.dailyChecked[key].push(id);
+    itemEl.classList.add('done');
+  }
+  save();
+  // Sync quest panel too
+  const qItem = document.querySelector(`[onclick*="toggleQuest('${id}'"]`);
+  if (qItem) {
+    if (S.dailyChecked[key].includes(id)) qItem.classList.add('completed');
+    else qItem.classList.remove('completed');
+  }
+  renderChar();
 }
 
 // ════════════════════════════════════
@@ -304,8 +359,7 @@ function buildStats() {
 // ════════════════════════════════════
 
 function renderQuests() {
-  el('questDayNum').textContent  = S.currentDay;
-  el('questNarrDay').textContent = 'NGÀY ' + S.currentDay;
+  if (el('questDayNum')) el('questDayNum').textContent = S.currentDay;
 
   const checked = S.dailyChecked['D' + S.currentDay] || [];
 
@@ -327,14 +381,12 @@ function renderQuests() {
     const done = prog >= q.t;
     return `<div class="wq-item${done ? ' completed' : ''}">
       <div class="quest-icon">${q.i}</div>
-      <div class="quest-info" style="flex:1">
-        <div class="quest-name">${q.n}</div>
-        <div class="quest-desc">${prog}/${q.t}</div>
-        <div class="wq-progress">
-          <div class="wq-progress-fill" style="width:${pct}%"></div>
-        </div>
+      <div class="wq-info">
+        <div class="wq-name">${q.n}</div>
+        <div class="wq-prog-track"><div class="wq-prog-fill" style="width:${pct}%"></div></div>
+        <div class="wq-count">${prog}/${q.t}</div>
       </div>
-      <div class="quest-xp">${done ? '✓' : '+' + q.xp}</div>
+      <div class="wq-xp">${done ? '✓' : '+' + q.xp}</div>
     </div>`;
   }).join('');
 
@@ -364,7 +416,7 @@ function renderRewards() {
       <div class="reward-icon">${r.i}</div>
       <div>
         <div class="reward-name">${r.n}</div>
-        <div class="reward-milestone">${unlocked ? '✓ UNLOCKED' : 'Unlock: ' + r.m}</div>
+        <div class="reward-ms">${unlocked ? '✓ Đã mở' : 'Mở khoá: ' + r.m}</div>
       </div>
     </div>`;
   }).join('');
@@ -669,27 +721,10 @@ async function generateBossNarrative() {
 }
 
 async function showLevelUp(lvl) {
-  el('luNum').textContent  = LEVELS.indexOf(lvl) + 1;
-  el('luName').textContent = lvl.n;
-  el('luDesc').textContent = lvl.d;
-  el('luNarr').textContent = 'Đang tải...';
+  if(el('luNum'))  el('luNum').textContent  = LEVELS.indexOf(lvl) + 1;
+  if(el('luName')) el('luName').textContent = lvl.n;
+  if(el('luDesc')) el('luDesc').textContent = lvl.d;
   el('luOverlay').classList.add('active');
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        system: 'Viết 2 câu mô tả khoảnh khắc level up của Chí Đạt. Giọng điều tra viên lạnh. Không emoji. Tiếng Việt.',
-        messages: [{ role: 'user', content: `Level ${LEVELS.indexOf(lvl)+1}: "${lvl.n}". Streak: ${S.streak}. XP: ${S.totalXP}.` }]
-      })
-    });
-    const data = await res.json();
-    el('luNarr').innerHTML = formatNarrText(data.content && data.content[0] ? data.content[0].text : 'Threshold mới được thiết lập.');
-  } catch {
-    el('luNarr').textContent = 'Threshold mới vừa được vượt qua.';
-  }
 }
 
 function closeLU() { el('luOverlay').classList.remove('active'); }
@@ -894,9 +929,9 @@ function buildWeekStats() {
   let clean = 0, relapsed = 0;
   Object.values(S.days).forEach(d => { if (d.relapsed) relapsed++; else clean++; });
   wrap.innerHTML = `
-    <div class="stat-box"><div class="stat-num good">${clean}</div><div class="stat-lbl">Ngày sạch</div></div>
-    <div class="stat-box"><div class="stat-num danger">${relapsed}</div><div class="stat-lbl">Relapse</div></div>
-    <div class="stat-box"><div class="stat-num xp-col">${S.relapses.length}</div><div class="stat-lbl">Tổng log</div></div>
+    <div class="stat-pill"><div class="sp-val good">${clean}</div><div class="sp-lbl">Ngày sạch</div></div>
+    <div class="stat-pill"><div class="sp-val" style="color:var(--red)">${relapsed}</div><div class="sp-lbl">Relapse</div></div>
+    <div class="stat-pill"><div class="sp-val gold">${S.relapses.length}</div><div class="sp-lbl">Tổng log</div></div>
   `;
 }
 
@@ -914,10 +949,10 @@ function buildNarrHistory() {
     const st = d ? (d.relapsed ? 'relapsed' : 'clean') : 'partial';
     const xp = d ? d.xp : 0;
     const badgeStyle = st === 'clean'
-      ? 'background:var(--good-d);color:var(--good)'
+      ? 'background:var(--green-bg);color:var(--green)'
       : st === 'relapsed'
-      ? 'background:var(--danger-d);color:var(--danger)'
-      : 'background:var(--warn-d);color:var(--warn)';
+      ? 'background:var(--red-bg);color:var(--red)'
+      : 'background:rgba(255,159,10,.1);color:var(--orange)';
     const badge = st === 'clean' ? 'CLEAN' : st === 'relapsed' ? 'RELAPSED' : 'PARTIAL';
     const checks = d ? d.checked || [] : [];
 
@@ -949,10 +984,6 @@ function switchTab(name, btn) {
 function switchPanel(name, btn) {
   document.querySelectorAll('.bni').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  // Sync tab bar
-  document.querySelectorAll('.tab').forEach(t => {
-    t.classList.toggle('active', t.dataset.tab === name);
-  });
   switchPanelContent(name);
 }
 
@@ -962,7 +993,7 @@ function switchPanelContent(name) {
   if (panel) panel.classList.add('active');
   window.scrollTo(0, 0);
 
-  if (name === 'checkin') { renderQuests(); generateQuestNarrative(); }
+  if (name === 'checkin') { renderQuests(); }
   if (name === 'boss')    { renderBosses(); renderAchievements(); generateBossNarrative(); }
   if (name === 'journal') renderJournal();
   if (name === 'history') renderHistory();
@@ -976,7 +1007,8 @@ let cdInterval = null;
 let cdSeconds  = 1200;
 
 function openEM() {
-  el('emergency').classList.add('active');
+  const em = el('emergency');
+  if (em) em.classList.add('active');
 }
 
 function closeEM() {
@@ -1010,11 +1042,11 @@ function resetCD() {
 // MODALS
 // ════════════════════════════════════
 
-function openModal(id) { el(id).classList.add('active'); }
-function closeModal(id) { el(id).classList.remove('active'); }
+function openModal(id) { if(el(id)) el(id).classList.add('active'); }
+function closeModal(id) { if(el(id)) el(id).classList.remove('active'); }
 
 document.addEventListener('click', e => {
-  document.querySelectorAll('.modal.active').forEach(m => {
+  document.querySelectorAll('.modal-backdrop.active').forEach(m => {
     if (e.target === m) m.classList.remove('active');
   });
 });
@@ -1076,6 +1108,17 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// Handle backdrop click for modals
+function handleBackdrop(e, id) {
+  if (e.target === e.currentTarget) closeModal(id);
+}
+
+// Fix AI toggle for new HTML
+function toggleAI() {
+  aiReplyEnabled = !aiReplyEnabled;
+  const t = el('aiToggle');
+  if (t) t.classList.toggle('on', aiReplyEnabled);
+}
+
 // Boot
 renderAll();
-generateNarrative(false);
