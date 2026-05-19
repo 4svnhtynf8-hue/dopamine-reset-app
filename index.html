@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+  <meta name="theme-color" content="#0a0a0a"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="21D RESET"/>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+  <link rel="icon" href="favicon.ico"/>
+  <link rel="stylesheet" href="style.css"/>
+  <title>21D — Dopamine Reset</title>
+</head>
+<body>
+
+<!-- ─── OVERLAYS (outside app, no z-index conflicts) ─── -->
+
+<div class="xp-flash" id="xpFlash">+0 XP</div>
+<div class="dmg-popup" id="dmgPopup">-50 XP</div>
+<div class="toast" id="toast"></div>
+
+<!-- Level Up -->
+<div class="overlay" id="luOverlay">
+  <div class="lu-box">
+    <div class="lu-label">LEVEL UP</div>
+    <div class="lu-num" id="luNum">2</div>
+    <div class="lu-name" id="luName">Awakening</div>
+    <div class="lu-desc" id="luDesc"></div>
+    <button class="btn-primary" onclick="closeLU()">Tiếp tục →</button>
+  </div>
+</div>
+
+<!-- Emergency -->
+<div class="overlay" id="emergency">
+  <div class="em-wrap">
+    <div class="em-title">Dừng lại.</div>
+    <div class="em-sub">Anti-Relapse Protocol</div>
+    <div class="em-step">
+      <div class="em-n">1</div>
+      <div><strong>Đặt điện thoại xuống.</strong><br>Đứng dậy khỏi chỗ ngồi ngay bây giờ.</div>
+    </div>
+    <div class="em-step">
+      <div class="em-n">2</div>
+      <div><strong>Ra ngoài. Uống nước lạnh.</strong><br>Kích hoạt hệ phó giao cảm.</div>
+    </div>
+    <div class="cd-box">
+      <div class="cd-num" id="cdNum">20:00</div>
+      <div class="cd-lbl">Chỉ cần tồn tại qua đây</div>
+      <div class="cd-btns">
+        <button class="btn-outline" onclick="startCD()">Bắt đầu</button>
+        <button class="btn-outline" onclick="resetCD()">Reset</button>
+      </div>
+    </div>
+    <div class="em-step">
+      <div class="em-n">3</div>
+      <div><strong>Nhớ lại lý do.</strong><br>"Tao muốn dậy sớm, đọc sách, nghĩ thiện."</div>
+    </div>
+    <div class="em-step">
+      <div class="em-n">4</div>
+      <div><strong>Craving đạt đỉnh rồi tự hạ.</strong><br>15–20 phút. Chỉ cần chờ.</div>
+    </div>
+    <button class="btn-ghost" onclick="closeEM()" style="margin-top:20px;width:100%">Tôi đã qua được ✓</button>
+  </div>
+</div>
+
+<!-- Relapse Modal -->
+<div class="modal-backdrop" id="relapseModal" onclick="handleBackdrop(event,'relapseModal')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" style="color:var(--red)">Log Relapse</div>
+    <p class="sheet-note">Ghi nhận là dữ liệu — không phải thất bại. −50 XP, streak reset.</p>
+    <select class="field" id="rType">
+      <option value="cannabis">Mua / hút cần sa</option>
+      <option value="sex">Mại dâm</option>
+      <option value="phone">Điện thoại &gt;4h</option>
+      <option value="popper">Popper / thuốc cương</option>
+      <option value="other">Khác</option>
+    </select>
+    <textarea class="field" id="rNote" rows="3" placeholder="Trigger? Cảm xúc lúc đó? Bối cảnh?"></textarea>
+    <button class="btn-danger" onclick="logRelapse()">Ghi nhận</button>
+    <button class="btn-ghost" onclick="closeModal('relapseModal')" style="margin-top:8px;width:100%">Hủy</button>
+  </div>
+</div>
+
+<!-- ─── APP SHELL ─── -->
+<div class="app" id="app">
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="logo-wrap">
+      <img src="icons/icon-192.png" alt="21D" class="logo-img"/>
+    </div>
+    <div class="header-right">
+      <div class="day-badge">
+        <span class="day-num" id="headerDay">1</span>
+        <span class="day-of">/21</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- PROGRESS STRIP -->
+  <div class="progress-strip">
+    <div class="prog-dots" id="progDots"></div>
+  </div>
+
+  <!-- CONTENT SCROLL AREA -->
+  <main class="scroll-area" id="scrollArea">
+
+    <!-- ══ PANEL: NHÂN VẬT ══ -->
+    <section class="panel active" id="panel-dashboard">
+
+      <!-- Character card -->
+      <div class="char-card">
+        <div class="avatar" id="avatarEl">⚔</div>
+        <div class="char-info">
+          <div class="char-name">Chí Đạt</div>
+          <div class="char-subtitle">
+            <span class="lv-badge">LV <span id="levelNum">1</span></span>
+            <span class="char-title" id="charTitle">Distracted Mind</span>
+          </div>
+          <div class="xp-track">
+            <div class="xp-fill" id="xpFill" style="width:0%"></div>
+          </div>
+          <div class="xp-label-row">
+            <span id="xpCurrent">0 XP</span>
+            <span id="xpToNext">→ Lv.2</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Today missions (replaces narrator) -->
+      <div class="section-title">Hôm nay</div>
+      <div class="mission-card" id="missionCard">
+        <!-- rendered by JS -->
+      </div>
+
+      <!-- Stats row -->
+      <div class="stats-strip">
+        <div class="stat-pill big">
+          <div class="sp-val good" id="streakEl">0</div>
+          <div class="sp-fire">🔥</div>
+          <div class="sp-lbl">Streak</div>
+        </div>
+        <div class="stat-pill">
+          <div class="sp-val gold" id="todayXpEl">0</div>
+          <div class="sp-lbl">XP hôm nay</div>
+        </div>
+        <div class="stat-pill">
+          <div class="sp-val" id="focusLvEl">—</div>
+          <div class="sp-lbl">Tập trung</div>
+        </div>
+      </div>
+
+      <!-- Evolution path -->
+      <div class="section-title">Tiến hóa</div>
+      <div class="evo-row" id="evoRow"></div>
+
+      <!-- Character stats -->
+      <div class="section-title">Chỉ số</div>
+      <div class="stats-list" id="statsGrid"></div>
+
+      <!-- Actions -->
+      <div class="action-row">
+        <button class="btn-danger-sm" onclick="openEM()">🆘 Khẩn cấp</button>
+        <button class="btn-ghost-sm" onclick="openModal('relapseModal')">⚠ Log Relapse</button>
+      </div>
+
+    </section>
+
+    <!-- ══ PANEL: NHIỆM VỤ ══ -->
+    <section class="panel" id="panel-checkin">
+
+      <div class="section-title">Nhiệm vụ ngày <span id="questDayNum">1</span></div>
+      <div id="dqList"></div>
+
+      <div class="section-title" style="margin-top:24px">Nhiệm vụ tuần</div>
+      <div id="wqList"></div>
+
+      <div class="section-title" style="margin-top:24px">Phần thưởng</div>
+      <div id="rewardList"></div>
+
+      <div style="height:16px"></div>
+      <button class="btn-primary" onclick="submitDay()">Ghi nhận ngày → Nhận XP</button>
+      <button class="btn-ghost" onclick="openModal('relapseModal')" style="margin-top:8px;width:100%">⚠ Log Relapse</button>
+
+    </section>
+
+    <!-- ══ PANEL: BOSS ══ -->
+    <section class="panel" id="panel-boss">
+
+      <div class="section-title">Boss Battles</div>
+      <p class="section-note">Vượt qua trigger trong thực tế → nhấn Counter-Attack → Boss mất HP.</p>
+      <div id="bossList"></div>
+
+      <div class="section-title" style="margin-top:24px">Thành tích</div>
+      <div class="ach-grid" id="achGrid"></div>
+
+    </section>
+
+    <!-- ══ PANEL: HÀNH TRÌNH (Journal) ══ -->
+    <section class="panel" id="panel-journal">
+
+      <div class="jstats" id="jstats"></div>
+
+      <div class="compose-card">
+        <div class="jtype-row">
+          <button class="jtype active" onclick="setJType('daily',this)">📝 Ngày</button>
+          <button class="jtype win-jtype" onclick="setJType('win',this)">⚡ Win</button>
+          <button class="jtype urge-jtype" onclick="setJType('urge',this)">🔥 Urge</button>
+          <button class="jtype insight-jtype" onclick="setJType('insight',this)">💡 Nhận ra</button>
+          <button class="jtype relapse-jtype" onclick="setJType('relapse',this)">⚠ Relapse</button>
+        </div>
+        <textarea class="journal-ta" id="journalText" placeholder="Viết gì đó về hôm nay..." maxlength="2000" oninput="updateCharCount()"></textarea>
+        <div class="compose-footer">
+          <div>
+            <div class="char-count"><span id="charCount">0</span>/2000</div>
+            <div class="mood-row">
+              <button class="jmood" onclick="selectJMood('😵',this)">😵</button>
+              <button class="jmood" onclick="selectJMood('😔',this)">😔</button>
+              <button class="jmood" onclick="selectJMood('😐',this)">😐</button>
+              <button class="jmood" onclick="selectJMood('🙂',this)">🙂</button>
+              <button class="jmood" onclick="selectJMood('💪',this)">💪</button>
+            </div>
+          </div>
+          <button class="btn-save" onclick="saveJournalEntry()">Lưu</button>
+        </div>
+      </div>
+
+      <div class="ai-row">
+        <span class="ai-lbl">AI phản hồi</span>
+        <div class="toggle" id="aiToggle" onclick="toggleAI()"><div class="toggle-thumb"></div></div>
+      </div>
+
+      <div class="filter-row">
+        <button class="filter-btn active" onclick="filterJ('all',this)">Tất cả</button>
+        <button class="filter-btn" onclick="filterJ('daily',this)">Ngày</button>
+        <button class="filter-btn" onclick="filterJ('win',this)">Win</button>
+        <button class="filter-btn" onclick="filterJ('urge',this)">Urge</button>
+        <button class="filter-btn" onclick="filterJ('insight',this)">Nhận ra</button>
+        <button class="filter-btn" onclick="filterJ('relapse',this)">Relapse</button>
+      </div>
+
+      <div id="journalEntries">
+        <div class="empty-state">Chưa có entry nào.<br>Viết entry đầu tiên ở trên.</div>
+      </div>
+
+    </section>
+
+    <!-- ══ PANEL: DỮ LIỆU (History) ══ -->
+    <section class="panel" id="panel-history">
+
+      <div class="section-title">Tổng quan 21 ngày</div>
+      <div class="grid21" id="grid21"></div>
+
+      <div class="stats-strip" id="weekStats" style="margin-bottom:20px"></div>
+
+      <div class="section-title">Lịch sử</div>
+      <div id="narrativeHistory">
+        <div class="empty-state">Hoàn thành ngày đầu tiên để bắt đầu.</div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="bni active" onclick="switchPanel('dashboard',this)">
+      <span class="bni-icon">⚔️</span>
+      <span class="bni-lbl">Nhân vật</span>
+    </button>
+    <button class="bni" onclick="switchPanel('checkin',this)">
+      <span class="bni-icon">✅</span>
+      <span class="bni-lbl">Nhiệm vụ</span>
+    </button>
+    <button class="bni" onclick="switchPanel('boss',this)">
+      <span class="bni-icon">💀</span>
+      <span class="bni-lbl">Boss</span>
+    </button>
+    <button class="bni" onclick="switchPanel('journal',this)">
+      <span class="bni-icon">✍️</span>
+      <span class="bni-lbl">Hành trình</span>
+    </button>
+    <button class="bni" onclick="switchPanel('history',this)">
+      <span class="bni-icon">📊</span>
+      <span class="bni-lbl">Dữ liệu</span>
+    </button>
+  </nav>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
