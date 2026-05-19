@@ -75,12 +75,16 @@ body {
   padding: calc(var(--safe-t) + 12px) 20px 12px;
 }
 
-.logo-text {
-  font-size: 40px;
-  font-weight: 700;
-  letter-spacing: -2px;
-  color: var(--white);
-  line-height: 1;
+.logo-wrap {
+  display: flex;
+  align-items: center;
+}
+
+.logo-img {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+  display: block;
 }
 
 .header-right { text-align: right; }
