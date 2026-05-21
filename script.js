@@ -34,7 +34,8 @@ if (!DATA) {
     triggers:{}, state:-1, relapses:[], lastDate:null,
     customTasks:null, history:{}, cravingHistory:[], dayClosingHistory:[],
     bestStreak:1, totalCleanDays:0, survivedCount:0, relapseCount:0,
-    todayCommit:false, brainMilestoneSeen:0
+    todayCommit:false, brainMilestoneSeen:0,
+    dailyJournal:[], cravingToday:0, dailyCravingHistory:[]
   };
 }
 if (!DATA.customTasks)       DATA.customTasks = JSON.parse(JSON.stringify(DEFAULT_TASKS));
@@ -48,6 +49,9 @@ if (!DATA.totalCleanDays)    DATA.totalCleanDays = 0;
 if (!DATA.survivedCount)     DATA.survivedCount = 0;
 if (!DATA.relapseCount)      DATA.relapseCount = 0;
 if (DATA.todayCommit === undefined) DATA.todayCommit = false;
+if (!DATA.dailyJournal)      DATA.dailyJournal = [];
+if (DATA.cravingToday === undefined) DATA.cravingToday = 0;
+if (!DATA.dailyCravingHistory) DATA.dailyCravingHistory = [];
 if (!DATA.seenMilestones) {
   DATA.seenMilestones = DATA.brainMilestoneSeen
     ? BRAIN_MILESTONES.filter(function(m){return m.day<=DATA.brainMilestoneSeen;}).map(function(m){return m.day;})
@@ -114,6 +118,7 @@ function initDay() {
     DATA.state = -1;
     DATA.energy = 50;
     DATA.todayCommit = false;
+    DATA.cravingToday = 0;
     saveData();
   }
 }
@@ -129,7 +134,17 @@ function getCurrentMilestone() {
 function renderBrainRecovery() {
   var pct = Math.min(DATA.streak / 21 * 100, 100);
   var barEl = document.getElementById('brain-bar');
-  if (barEl) barEl.style.width = pct + '%';
+  if (barEl) {
+    // Reset to 0 first so transition plays each time progress tab opens
+    barEl.style.transition = 'none';
+    barEl.style.width = '0%';
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        barEl.style.transition = '';
+        barEl.style.width = pct + '%';
+      });
+    });
+  }
 
   var daysEl = document.getElementById('brain-days');
   if (daysEl) daysEl.textContent = DATA.streak + ' / 21 ngày';
@@ -169,7 +184,13 @@ function closeBrainPopup() {
 function doCommit() {
   DATA.todayCommit = true; saveData();
   var btn = document.getElementById('commit-btn');
-  if (btn) { btn.textContent = '✓ Đã cam kết hôm nay'; btn.classList.add('done'); btn.disabled = true; }
+  if (btn) {
+    btn.textContent = '✓ Đã cam kết hôm nay';
+    btn.classList.add('done');
+    btn.disabled = true;
+    btn.classList.add('flash');
+    setTimeout(function(){ btn.classList.remove('flash'); }, 200);
+  }
 }
 function renderCommit() {
   var btn = document.getElementById('commit-btn');
@@ -266,9 +287,38 @@ function renderProgress() {
   document.getElementById('stat-relapse').textContent  = DATA.relapseCount||0;
 
   renderBrainRecovery();
+  renderCravingToday();
+  renderJournalRecent();
   renderCalendar();
   renderCravingHistory();
   renderTriggerList();
+}
+function renderCravingToday() {
+  var n = DATA.cravingToday || 0;
+  var numEl = document.getElementById('craving-today-num');
+  var msgEl = document.getElementById('craving-today-msg');
+  if (!numEl) return;
+  numEl.textContent = n === 0 ? '—' : '🔥 ' + n + ' lần';
+  if (n === 0) { msgEl.textContent = 'Chưa ghi nhận'; }
+  else if (n >= 8) { msgEl.textContent = 'Hôm nay là ngày nguy hiểm'; }
+  else if (n >= 5) { msgEl.textContent = 'Hôm nay hơi khó'; }
+  else { msgEl.textContent = ''; }
+}
+function renderJournalRecent() {
+  var container = document.getElementById('journal-recent-list');
+  if (!container) return;
+  var list = (DATA.dailyJournal||[]).slice().reverse().slice(0,3);
+  if (!list.length) { container.innerHTML='<div style="color:var(--gray);font-size:13px">Chưa có ghi chép.</div>'; return; }
+  container.innerHTML = '';
+  list.forEach(function(j) {
+    var parts = j.date.split('-');
+    var label = parts[2]+'/'+parts[1];
+    var el = document.createElement('div');
+    el.style.cssText = 'padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05)';
+    el.innerHTML = '<div style="font-family:\'Be Vietnam Pro\',sans-serif;font-size:11px;font-weight:700;color:var(--gray);margin-bottom:4px">'+label+'</div>'+
+      '<div style="font-size:13px;color:var(--cream);font-family:\'Cormorant Garamond\',serif;font-style:italic;line-height:1.5">"'+escHtml(j.text)+'"</div>';
+    container.appendChild(el);
+  });
 }
 function renderCalendar() {
   var grid=document.getElementById('cal-grid'); grid.innerHTML='';
@@ -410,6 +460,7 @@ function goToIntensity() {
   var all=Object.values(selectedChips).flat();
   currentCraving.triggers=all;
   all.forEach(function(c){ DATA.triggers[c]=(DATA.triggers[c]||0)+1; });
+  DATA.cravingToday = (DATA.cravingToday||0) + 1;
   saveData();
   document.getElementById('emg-checkin').classList.remove('showing');
   document.getElementById('emg-intensity').classList.add('showing');
@@ -502,16 +553,23 @@ function openDayClose() {
   var isRelapse=DATA.relapses.indexOf(today)>=0;
   var todayCravings=DATA.cravingHistory.filter(function(c){return c.date===today;});
   var won=todayCravings.filter(function(c){return c.result==='Đã vượt qua';}).length;
+  var cravingCount=DATA.cravingToday||0;
   var sumEl=document.getElementById('day-close-summary'); sumEl.innerHTML='';
-  [{icon:isRelapse?'⚠':'✓',text:isRelapse?'Có tái phạm':'Không tái phạm',ok:!isRelapse},
-   {icon:'✓',text:tasksDone+'/'+total+' nhiệm vụ',ok:tasksDone>=total},
-   {icon:'✓',text:'Năng lượng: '+DATA.energy,ok:true},
-   {icon:'✓',text:won+' cơn vượt qua'+(todayCravings.length?' / '+todayCravings.length+' cơn':''),ok:true}
+  [
+    {icon:isRelapse?'⚠':'✓', text:isRelapse?'Có tái phạm':'Không tái phạm', ok:!isRelapse},
+    {icon:'✓', text:'Nhiệm vụ: '+tasksDone+'/'+total, ok:tasksDone>=total},
+    {icon:'✓', text:'Năng lượng: '+DATA.energy, ok:true},
+    {icon:'✓', text:'Số cơn hôm nay: '+cravingCount, ok:true},
+    {icon:'✓', text:'Vượt qua: '+won+(cravingCount?' / '+cravingCount:''), ok:true}
   ].forEach(function(it){
     var d=document.createElement('div'); d.className='dc-item';
     d.innerHTML='<span class="dc-icon" style="color:'+(it.ok?'var(--gold)':'var(--soft-warn)')+'">'+it.icon+'</span><span>'+escHtml(it.text)+'</span>';
     sumEl.appendChild(d);
   });
+  // Prefill journal textarea
+  var existing=(DATA.dailyJournal||[]).find(function(j){return j.date===today;});
+  var ta=document.getElementById('day-journal-input');
+  if(ta){ ta.value=existing?existing.text:''; updateJournalCount(); }
   var todayTriggers={};
   todayCravings.forEach(function(c){c.triggers.forEach(function(t){todayTriggers[t]=(todayTriggers[t]||0)+1;});});
   var topToday=Object.entries(todayTriggers).sort(function(a,b){return b[1]-a[1];}).slice(0,4);
@@ -536,10 +594,32 @@ function generateTips(cravings,topTriggers,isRelapse) {
   return tips.slice(0,2);
 }
 function closeDayFinal() {
+  var today = todayKey();
+  // Save journal
+  var ta = document.getElementById('day-journal-input');
+  var txt = ta ? ta.value.trim() : '';
+  if (txt) {
+    var existing = DATA.dailyJournal.findIndex(function(j){return j.date===today;});
+    if (existing >= 0) DATA.dailyJournal[existing].text = txt;
+    else DATA.dailyJournal.push({date:today, text:txt});
+  }
+  // Save daily craving count
+  var existCraving = DATA.dailyCravingHistory.findIndex(function(d){return d.date===today;});
+  if (existCraving >= 0) DATA.dailyCravingHistory[existCraving].count = DATA.cravingToday||0;
+  else DATA.dailyCravingHistory.push({date:today, count:DATA.cravingToday||0});
+
   snapshotToday();
-  DATA.dayClosingHistory.push({date:todayKey(),time:nowTime(),energy:DATA.energy,streak:DATA.streak});
+  DATA.dayClosingHistory.push({date:today, time:nowTime(), energy:DATA.energy, streak:DATA.streak});
   saveData();
   document.getElementById('day-close-modal').style.display='none';
+}
+function updateJournalCount() {
+  var ta = document.getElementById('day-journal-input');
+  var cc = document.getElementById('journal-char-count');
+  if (ta && cc) cc.textContent = ta.value.length + ' / 120';
+}
+function handleCloseDayClick() {
+  if (isAfterEndDayTime()) openDayClose();
 }
 function cancelDayClose() { document.getElementById('day-close-modal').style.display='none'; }
 
@@ -596,8 +676,17 @@ function updateRealtimeUI() {
       dzCard.style.display='block';
     } else { dzCard.style.display='none'; }
   }
-  var cdWrap=document.getElementById('close-day-wrap');
-  if(cdWrap) cdWrap.style.display=isAfterEndDayTime()?'flex':'none';
+  var cdBtn=document.getElementById('close-day-btn');
+  var cdHint=document.getElementById('close-day-hint');
+  if(cdBtn){
+    var after21=isAfterEndDayTime();
+    cdBtn.textContent=after21?'KẾT THÚC NGÀY':'🔒 KẾT THÚC NGÀY';
+    cdBtn.style.opacity=after21?'1':'0.4';
+    cdBtn.style.cursor=after21?'pointer':'default';
+    cdBtn.style.pointerEvents=after21?'auto':'none';
+    cdBtn.style.borderColor=after21?'rgba(255,255,255,.15)':'rgba(255,255,255,.08)';
+    if(cdHint) cdHint.style.display=after21?'none':'block';
+  }
 }
 function checkDateChange() {
   var today=todayKey();

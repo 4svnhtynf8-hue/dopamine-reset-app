@@ -67,8 +67,9 @@
     </div>
     <div id="task-list"></div>
 
-    <div id="close-day-wrap" style="display:none;padding:12px 16px 20px;justify-content:center">
-      <button onclick="openDayClose()" class="close-day-btn">KẾT THÚC NGÀY</button>
+    <div style="padding:12px 16px 20px;display:flex;justify-content:center">
+      <button id="close-day-btn" onclick="handleCloseDayClick()" class="close-day-btn">🔒 KẾT THÚC NGÀY</button>
+      <div id="close-day-hint" style="font-size:11px;color:var(--gray);text-align:center;margin-top:6px;display:none">Mở sau 21:00</div>
     </div>
 
     <div style="padding:0 20px 20px;text-align:center">
@@ -119,6 +120,19 @@
     <div class="card">
       <div class="label">21 NGÀY</div>
       <div class="cal-grid" id="cal-grid"></div>
+    </div>
+
+    <div class="card">
+      <div class="label">CƠN THÈM HÔM NAY</div>
+      <div id="craving-today-display">
+        <span style="font-family:'Be Vietnam Pro',sans-serif;font-size:28px;font-weight:800;color:#A07B56" id="craving-today-num">🔥 0</span>
+        <div id="craving-today-msg" style="font-size:12px;color:var(--gray);margin-top:4px">Chưa ghi nhận</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="label">NHẬT KÝ GẦN ĐÂY</div>
+      <div id="journal-recent-list"><div style="color:var(--gray);font-size:13px">Chưa có ghi chép.</div></div>
     </div>
 
     <div class="card">
@@ -297,6 +311,12 @@
       <div style="margin-bottom:28px">
         <div class="label">HÔM NAY</div>
         <div id="day-close-summary" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+
+      <div style="margin-bottom:28px">
+        <div class="label">CẢM NGHĨ HÔM NAY</div>
+        <textarea id="day-journal-input" maxlength="120" placeholder="Hôm nay thế nào?" oninput="updateJournalCount()" style="width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px;color:var(--white);font-family:'Inter',sans-serif;font-size:14px;line-height:1.6;resize:none;outline:none;height:80px;"></textarea>
+        <div id="journal-char-count" style="text-align:right;font-size:11px;color:var(--gray);margin-top:4px">0 / 120</div>
       </div>
       <div style="margin-bottom:28px">
         <div class="label">MẪU LẶP HÔM NAY</div>

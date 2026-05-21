@@ -156,8 +156,7 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
 .breathe-screen.showing{display:flex}
 .breathe-title{font-family:'Be Vietnam Pro',sans-serif;font-size:20px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--white);margin-bottom:4px}
 .breathe-sub{font-size:12px;color:var(--gray);margin-bottom:24px}
-.breathe-circle{width:130px;height:130px;border-radius:50%;border:2px solid var(--brown);animation:breathe 4s ease-in-out infinite;display:flex;align-items:center;justify-content:center;margin-bottom:16px}
-@keyframes breathe{0%,100%{transform:scale(1);border-color:var(--brown)}50%{transform:scale(1.2);border-color:var(--gold)}}
+.breathe-circle{width:130px;height:130px;border-radius:50%;border:2px solid var(--brown);display:flex;align-items:center;justify-content:center;margin-bottom:16px}
 .breathe-phase-text{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:var(--cream);opacity:.7}
 .timer{font-family:'Be Vietnam Pro',sans-serif;font-size:52px;font-weight:800;color:var(--gold);margin:8px 0 20px;text-align:center}
 .steps-list{width:100%;margin-bottom:8px}
@@ -186,3 +185,69 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
 .dc-item{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--cream)}
 .dc-icon{font-size:14px;width:20px;text-align:center;flex-shrink:0}
 .dc-tip{background:rgba(200,155,109,.08);border-left:2px solid var(--gold);border-radius:0 10px 10px 0;padding:10px 14px;font-size:13px;color:var(--cream);line-height:1.5}
+
+/* ═══════════════════════════════════════════════════════
+   ANIMATIONS — Apple + Calm style
+   Respects prefers-reduced-motion
+   ═══════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: no-preference) {
+
+  /* 1. Screen transition */
+  .screen.active {
+    animation: screenIn 250ms ease-out both;
+  }
+  @keyframes screenIn {
+    from { opacity:0; transform:translateY(8px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  /* 2. Home cards — staggered */
+  .screen#screen-home .streak-bar    { animation: cardIn 300ms 50ms  ease-out both; }
+  .screen#screen-home .energy-card   { animation: cardIn 300ms 80ms  ease-out both; }
+  .screen#screen-home .commit-card   { animation: cardIn 300ms 120ms ease-out both; }
+  .screen#screen-home #task-list     { animation: cardIn 300ms 150ms ease-out both; }
+  @keyframes cardIn {
+    from { opacity:0; transform:translateY(6px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  /* 3. Brain bar — animated via JS, transition here */
+  .brain-bar {
+    transition: width 800ms ease-out;
+  }
+
+  /* 4. Breathe circle — 4s in / 2s hold / 6s out = 12s cycle */
+  .breathe-circle {
+    animation: breatheCycle 12s ease-in-out infinite;
+  }
+  @keyframes breatheCycle {
+    0%   { transform:scale(1);    border-color:var(--brown); box-shadow:0 0 0 0 rgba(160,123,86,0); }
+    33%  { transform:scale(1.22); border-color:var(--gold);  box-shadow:0 0 0 16px rgba(160,123,86,.06); }
+    50%  { transform:scale(1.22); border-color:var(--gold);  box-shadow:0 0 0 16px rgba(160,123,86,.06); }
+    100% { transform:scale(1);    border-color:var(--brown); box-shadow:0 0 0 0 rgba(160,123,86,0); }
+  }
+
+  /* 5. Commit button active state */
+  .commit-btn:active {
+    transform: scale(.98);
+    transition: transform 200ms ease-out, background 200ms ease-out;
+  }
+  .commit-btn.flash {
+    animation: commitFlash 200ms ease-out;
+  }
+  @keyframes commitFlash {
+    0%   { background: rgba(200,155,109,.25); }
+    100% { background: transparent; }
+  }
+
+}
+
+/* prefers-reduced-motion: override everything */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
