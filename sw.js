@@ -1,52 +1,87 @@
-var CACHE_NAME = '21d-reset-v1';
-var urlsToCache = [
+/* ══════════════════════════════════════
+   21D RESET
+   sw.js — Offline-first PWA caching
+══════════════════════════════════════ */
+
+const CACHE_NAME    = '21d-reset-v1';
+const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/style.css',
   '/script.js',
-  '/manifest.json'
+  '/manifest.json',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png',
 ];
 
-self.addEventListener('install', function(event) {
+// ── INSTALL ──
+self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(function(cache) {
-      return cache.addAll(urlsToCache);
-    })
+    caches.open(CACHE_NAME).then(cache => {
+      return cache.addAll(STATIC_ASSETS);
+    }).then(() => self.skipWaiting())
   );
-  self.skipWaiting();
 });
 
-self.addEventListener('activate', function(event) {
+// ── ACTIVATE ──
+// Remove old caches
+self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(function(cacheNames) {
+    caches.keys().then(cacheNames => {
       return Promise.all(
-        cacheNames.filter(function(name) {
-          return name !== CACHE_NAME;
-        }).map(function(name) {
-          return caches.delete(name);
-        })
+        cacheNames
+          .filter(name => name !== CACHE_NAME)
+          .map(name => caches.delete(name))
       );
-    })
+    }).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-self.addEventListener('fetch', function(event) {
+// ── FETCH ──
+// Cache First → stale-while-revalidate for static assets
+// All data is localStorage — no API calls to cache
+self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') return;
+
   event.respondWith(
-    caches.match(event.request).then(function(response) {
-      if (response) return response;
-      return fetch(event.request).then(function(response) {
+    caches.match(event.request).then(cachedResponse => {
+      if (cachedResponse) {
+        // Serve from cache; update in background
+        fetch(event.request).then(networkResponse => {
+          if (networkResponse && networkResponse.status === 200) {
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, networkResponse.clone());
+            });
+          }
+        }).catch(() => null);
+        return cachedResponse;
+      }
+
+      // Not cached — fetch and cache
+      return fetch(event.request).then(response => {
         if (!response || response.status !== 200 || response.type !== 'basic') {
           return response;
         }
-        var responseToCache = response.clone();
-        caches.open(CACHE_NAME).then(function(cache) {
-          cache.put(event.request, responseToCache);
+        caches.open(CACHE_NAME).then(cache => {
+          cache.put(event.request, response.clone());
         });
         return response;
-      }).catch(function() {
-        return caches.match('/index.html');
+      }).catch(() => {
+        if (event.request.mode === 'navigate') {
+          return caches.match('/index.html');
+        }
+        return new Response('Offline', { status: 503 });
       });
     })
   );
+});
+
+// ── MESSAGE ──
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+  if (event.data && event.data.type === 'GET_VERSION') {
+    event.ports[0].postMessage({ version: CACHE_NAME });
+  }
 });
