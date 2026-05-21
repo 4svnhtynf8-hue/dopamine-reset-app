@@ -1,21 +1,18 @@
 {
-  "name": "LYFT — Dopamine Reset 21",
-  "short_name": "LYFT RESET",
-  "description": "Dopamine Reset 21 Days — Neural Rewire System",
-  "start_url": "/",
+  "name": "21D RESET",
+  "short_name": "21D RESET",
+  "description": "Hệ thống kiểm soát dopamine 21 ngày",
+  "start_url": "/index.html",
   "display": "standalone",
-  "background_color": "#0e0e0d",
-  "theme_color": "#0e0e0d",
-  "orientation": "portrait-primary",
-  "lang": "vi",
-  "scope": "/",
-  "categories": ["health", "lifestyle"],
+  "background_color": "#1D1D1B",
+  "theme_color": "#1D1D1B",
+  "orientation": "portrait",
   "icons": [
     {
-      "src": "icons/icon-144.png",
-      "sizes": "144x144",
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
       "src": "icons/icon-512.png",
@@ -23,7 +20,5 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ],
-  "screenshots": [],
-  "prefer_related_applications": false
+  ]
 }

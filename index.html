@@ -1,294 +1,332 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
-  <meta name="theme-color" content="#0a0a0a"/>
-  <meta name="apple-mobile-web-app-capable" content="yes"/>
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-  <meta name="apple-mobile-web-app-title" content="21D RESET"/>
-  <link rel="manifest" href="manifest.json"/>
-  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
-  <link rel="icon" href="favicon.ico"/>
-  <link rel="stylesheet" href="style.css"/>
-  <title>21D — Dopamine Reset</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1D1D1B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="21D RESET">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>21D RESET</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;700;800&family=Inter:wght@400;500;600&family=Cormorant+Garamond:ital,wght@1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
+<div class="app">
 
-<!-- ─── OVERLAYS (outside app, no z-index conflicts) ─── -->
-
-<div class="xp-flash" id="xpFlash">+0 XP</div>
-<div class="dmg-popup" id="dmgPopup">-50 XP</div>
-<div class="toast" id="toast"></div>
-
-<!-- Level Up -->
-<div class="overlay" id="luOverlay">
-  <div class="lu-box">
-    <div class="lu-label">LEVEL UP</div>
-    <div class="lu-num" id="luNum">2</div>
-    <div class="lu-name" id="luName">Awakening</div>
-    <div class="lu-desc" id="luDesc"></div>
-    <button class="btn-primary" onclick="closeLU()">Tiếp tục →</button>
-  </div>
-</div>
-
-<!-- Emergency -->
-<div class="overlay" id="emergency">
-  <div class="em-wrap">
-    <div class="em-title">Dừng lại.</div>
-    <div class="em-sub">Anti-Relapse Protocol</div>
-    <div class="em-step">
-      <div class="em-n">1</div>
-      <div><strong>Đặt điện thoại xuống.</strong><br>Đứng dậy khỏi chỗ ngồi ngay bây giờ.</div>
+  <!-- HOME SCREEN -->
+  <div class="screen active" id="screen-home">
+    <div class="streak-bar">
+      <div class="streak-num" id="streak-num">1</div>
+      <div class="streak-unit">ngày liên tục</div>
     </div>
-    <div class="em-step">
-      <div class="em-n">2</div>
-      <div><strong>Ra ngoài. Uống nước lạnh.</strong><br>Kích hoạt hệ phó giao cảm.</div>
-    </div>
-    <div class="cd-box">
-      <div class="cd-num" id="cdNum">20:00</div>
-      <div class="cd-lbl">Chỉ cần tồn tại qua đây</div>
-      <div class="cd-btns">
-        <button class="btn-outline" onclick="startCD()">Bắt đầu</button>
-        <button class="btn-outline" onclick="resetCD()">Reset</button>
-      </div>
-    </div>
-    <div class="em-step">
-      <div class="em-n">3</div>
-      <div><strong>Nhớ lại lý do.</strong><br>"Tao muốn dậy sớm, đọc sách, nghĩ thiện."</div>
-    </div>
-    <div class="em-step">
-      <div class="em-n">4</div>
-      <div><strong>Craving đạt đỉnh rồi tự hạ.</strong><br>15–20 phút. Chỉ cần chờ.</div>
-    </div>
-    <button class="btn-ghost" onclick="closeEM()" style="margin-top:20px;width:100%">Tôi đã qua được ✓</button>
-  </div>
-</div>
+    <div class="streak-phase" id="streak-phase">NGÀY ĐẦU TIÊN — KHÓ NHẤT</div>
 
-<!-- Relapse Modal -->
-<div class="modal-backdrop" id="relapseModal" onclick="handleBackdrop(event,'relapseModal')">
-  <div class="sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title" style="color:var(--red)">Log Relapse</div>
-    <p class="sheet-note">Ghi nhận là dữ liệu — không phải thất bại. −50 XP, streak reset.</p>
-    <select class="field" id="rType">
-      <option value="cannabis">Mua / hút cần sa</option>
-      <option value="sex">Mại dâm</option>
-      <option value="phone">Điện thoại &gt;4h</option>
-      <option value="popper">Popper / thuốc cương</option>
-      <option value="other">Khác</option>
-    </select>
-    <textarea class="field" id="rNote" rows="3" placeholder="Trigger? Cảm xúc lúc đó? Bối cảnh?"></textarea>
-    <button class="btn-danger" onclick="logRelapse()">Ghi nhận</button>
-    <button class="btn-ghost" onclick="closeModal('relapseModal')" style="margin-top:8px;width:100%">Hủy</button>
-  </div>
-</div>
-
-<!-- ─── APP SHELL ─── -->
-<div class="app" id="app">
-
-  <!-- HEADER -->
-  <header class="app-header">
-    <div class="logo-wrap"><img src="icons/logo-header.png" alt="21D" class="logo-img"/></div>
-    <div class="header-right">
-      <div class="day-badge">
-        <span class="day-num" id="headerDay">1</span>
-        <span class="day-of">/21</span>
-      </div>
+    <div style="padding:4px 20px 0;display:flex;align-items:center;gap:6px">
+      <span style="font-size:12px;color:var(--gray)">🕒</span>
+      <span id="rt-clock" style="font-size:12px;color:var(--gray);font-family:'Inter',sans-serif">--:--</span>
     </div>
-  </header>
 
-  <!-- PROGRESS STRIP -->
-  <div class="progress-strip">
-    <div class="prog-dots" id="progDots"></div>
+    <div id="danger-zone-card" class="dz-card" style="display:none">
+      <div class="dz-label">⚠ KHUNG GIỜ NGUY HIỂM</div>
+      <div id="danger-zone-time" class="dz-time"></div>
+      <div id="danger-zone-name" class="dz-name"></div>
+      <div id="danger-zone-msg" class="dz-msg"></div>
+      <button onclick="gotoScreen('emergency')" class="dz-btn">MỞ KHẨN CẤP</button>
+    </div>
+
+    <div style="padding:0 16px 8px;margin-top:14px"><div class="label">TRẠNG THÁI HÔM NAY</div></div>
+    <div class="state-row">
+      <div class="state-chip" onclick="selectState(0)">🌪️ Bão thôi thúc</div>
+      <div class="state-chip" onclick="selectState(1)">🌫️ Mơ hồ</div>
+      <div class="state-chip" onclick="selectState(2)">☁️ Bình thường</div>
+      <div class="state-chip" onclick="selectState(3)">☀️ Tỉnh táo</div>
+    </div>
+    <div class="state-msg" id="state-msg">Chọn trạng thái để bắt đầu ngày.</div>
+
+    <div class="energy-card">
+      <div class="label">NĂNG LƯỢNG HÔM NAY</div>
+      <div class="energy-row"><span>LƯỜI</span><span>KỶ LUẬT</span></div>
+      <input type="range" min="0" max="100" value="50" id="energy-slider" oninput="updateEnergy(this.value)" step="1">
+      <div class="energy-val" id="energy-val">50</div>
+    </div>
+
+    <!-- CAM KẾT HÔM NAY -->
+    <div class="commit-card" id="commit-card">
+      <div class="label" style="margin-bottom:6px">CAM KẾT HÔM NAY</div>
+      <div class="commit-text">"Hôm nay tôi không thương lượng với cơn thèm."</div>
+      <button id="commit-btn" onclick="doCommit()" class="commit-btn">TÔI CAM KẾT</button>
+    </div>
+
+    <div style="padding:0 16px 8px;display:flex;align-items:center;justify-content:space-between">
+      <div class="label" style="margin:0">NHIỆM VỤ HÔM NAY</div>
+      <button onclick="openTaskEditor()" style="background:none;border:none;color:var(--gray);cursor:pointer;font-size:12px;font-family:'Be Vietnam Pro',sans-serif;font-weight:600;letter-spacing:.5px">+ Chỉnh sửa</button>
+    </div>
+    <div id="task-list"></div>
+
+    <div id="close-day-wrap" style="display:none;padding:12px 16px 20px;justify-content:center">
+      <button onclick="openDayClose()" class="close-day-btn">KẾT THÚC NGÀY</button>
+    </div>
+
+    <div style="padding:0 20px 20px;text-align:center">
+      <div class="quote" style="font-size:16px">"Tỉnh táo, sáng suốt, tự chủ — đó là con người bạn đang xây."</div>
+    </div>
   </div>
 
-  <!-- CONTENT SCROLL AREA -->
-  <main class="scroll-area" id="scrollArea">
+  <!-- PROGRESS SCREEN -->
+  <div class="screen" id="screen-progress">
+    <div class="prog-header">
+      <div class="prog-title">Tiến trình</div>
+    </div>
 
-    <!-- ══ PANEL: NHÂN VẬT ══ -->
-    <section class="panel active" id="panel-dashboard">
+    <!-- HỒI PHỤC NÃO -->
+    <div class="card">
+      <div class="label">HỒI PHỤC NÃO</div>
+      <div class="brain-status" id="brain-status">Não đang hồi phục</div>
+      <div class="brain-bar-wrap">
+        <div class="brain-bar" id="brain-bar"></div>
+      </div>
+      <div class="brain-days" id="brain-days">0 / 21 ngày</div>
+      <div class="brain-milestone" id="brain-milestone"></div>
+    </div>
 
-      <!-- Character card -->
-      <div class="char-card">
-        <div class="avatar" id="avatarEl">⚔</div>
-        <div class="char-info">
-          <div class="char-name">Chí Đạt</div>
-          <div class="char-subtitle">
-            <span class="lv-badge">LV <span id="levelNum">1</span></span>
-            <span class="char-title" id="charTitle">Distracted Mind</span>
-          </div>
-          <div class="xp-track">
-            <div class="xp-fill" id="xpFill" style="width:0%"></div>
-          </div>
-          <div class="xp-label-row">
-            <span id="xpCurrent">0 XP</span>
-            <span id="xpToNext">→ Lv.2</span>
-          </div>
+    <!-- KỶ LỤC -->
+    <div class="card">
+      <div class="label">THỐNG KÊ</div>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-val" id="stat-best">0</div>
+          <div class="stat-lbl">Kỷ lục</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val" id="stat-total">0</div>
+          <div class="stat-lbl">Tổng ngày sạch</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val" id="stat-survived">0</div>
+          <div class="stat-lbl">Cơn đã vượt</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val" id="stat-relapse" style="color:var(--soft-warn)">0</div>
+          <div class="stat-lbl">Tái phạm</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="label">21 NGÀY</div>
+      <div class="cal-grid" id="cal-grid"></div>
+    </div>
+
+    <div class="card">
+      <div class="label">LỊCH SỬ CƠN THÈM</div>
+      <div id="craving-history-list"><div style="color:var(--gray);font-size:13px">Chưa có dữ liệu.</div></div>
+    </div>
+
+    <div class="card">
+      <div class="label">BẢN ĐỒ TRIGGER</div>
+      <div id="trigger-list"><div style="color:var(--gray);font-size:13px">Dùng tab Khẩn cấp để ghi nhận trigger.</div></div>
+    </div>
+
+    <div style="padding:0 16px 20px">
+      <button class="relapse-btn" onclick="confirmRelapse()">GHI NHẬN TÁI PHẠM</button>
+    </div>
+  </div>
+
+  <!-- EMERGENCY SCREEN -->
+  <div class="screen" id="screen-emergency">
+
+    <div class="emg-main" id="emg-main">
+      <button class="emg-btn" onclick="startCheckin()">
+        <div class="emg-btn-label">TÔI ĐANG LÊN CƠN</div>
+      </button>
+      <div class="emg-sub">Nhấn ngay — trước khi não bạn thuyết phục bạn rằng "1 lần này không sao".</div>
+    </div>
+
+    <!-- Step 1: Trigger checkin -->
+    <div class="check-screen" id="emg-checkin">
+      <div class="check-q">Điều gì đang<br>xảy ra?</div>
+
+      <div class="section-label">CẢM XÚC</div>
+      <div class="chip-grid">
+        <div class="chip" onclick="toggleChip(this,'emotion')">😔 Cô đơn</div>
+        <div class="chip" onclick="toggleChip(this,'emotion')">😩 Căng thẳng</div>
+        <div class="chip" onclick="toggleChip(this,'emotion')">😑 Chán</div>
+        <div class="chip" onclick="toggleChip(this,'emotion')">😞 Buồn</div>
+        <div class="chip" onclick="toggleChip(this,'emotion')">😡 Bực</div>
+        <div class="chip" onclick="toggleChip(this,'emotion')">😬 Lo lắng</div>
+        <div class="chip" onclick="toggleChip(this,'emotion')">😵 Quá tải</div>
+      </div>
+
+      <div class="section-label">MÔI TRƯỜNG</div>
+      <div class="chip-grid">
+        <div class="chip" onclick="toggleChip(this,'env')">🌙 Thức khuya</div>
+        <div class="chip" onclick="toggleChip(this,'env')">📱 Bấm điện thoại</div>
+        <div class="chip" onclick="toggleChip(this,'env')">🏠 Một mình</div>
+        <div class="chip" onclick="toggleChip(this,'env')">🛏 Trên giường</div>
+        <div class="chip" onclick="toggleChip(this,'env')">⌛ Không có kế hoạch</div>
+      </div>
+
+      <div class="section-label">THỜI ĐIỂM</div>
+      <div class="chip-grid">
+        <div class="chip" onclick="toggleChip(this,'time')">🕘 Sau ca dạy 9h</div>
+        <div class="chip" onclick="toggleChip(this,'time')">🕒 Trống 3h chiều</div>
+        <div class="chip" onclick="toggleChip(this,'time')">🌙 Về nhà đêm</div>
+      </div>
+
+      <div class="section-label">GIỌNG NÓI TRONG ĐẦU</div>
+      <div class="chip-grid">
+        <div class="chip" onclick="toggleChip(this,'voice')">"1 lần này rồi thôi"</div>
+        <div class="chip" onclick="toggleChip(this,'voice')">"Tự thưởng cho mình"</div>
+        <div class="chip" onclick="toggleChip(this,'voice')">"Hôm nay xứng đáng"</div>
+        <div class="chip" onclick="toggleChip(this,'voice')">"Chán quá"</div>
+      </div>
+
+      <div id="pattern-section" class="pattern-box" style="display:none">
+        <div class="pattern-title">MẪU LẶP ĐƯỢC PHÁT HIỆN</div>
+        <div id="pattern-items"></div>
+        <div id="alt-actions" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(200,155,109,.15)">
+          <div style="font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--gray);margin-bottom:8px">GỢI Ý NGAY</div>
+          <div id="alt-action-items"></div>
         </div>
       </div>
 
-      <!-- Stats row -->
-      <div class="stats-strip">
-        <div class="stat-pill big">
-          <div class="sp-val good" id="streakEl">0</div>
-          <div class="sp-fire">🔥</div>
-          <div class="sp-lbl">Streak</div>
+      <button class="btn-primary" onclick="goToIntensity()">TIẾP THEO</button>
+      <button class="btn-secondary" onclick="cancelCheckin()">Tôi ổn, không cần</button>
+    </div>
+
+    <!-- Step 2: Intensity -->
+    <div class="check-screen" id="emg-intensity">
+      <div class="check-q">Cường độ<br>cơn thèm?</div>
+      <div style="margin:8px 0 32px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--gray);margin-bottom:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase">
+          <span>RẤT NHẸ</span><span>CỰC MẠNH</span>
         </div>
-        <div class="stat-pill">
-          <div class="sp-val gold" id="todayXpEl">0</div>
-          <div class="sp-lbl">XP hôm nay</div>
-        </div>
-        <div class="stat-pill">
-          <div class="sp-val" id="focusLvEl">—</div>
-          <div class="sp-lbl">Tập trung</div>
-        </div>
-      </div>
-
-      <!-- Evolution path -->
-      <div class="section-title">Tiến hóa</div>
-      <div class="evo-row" id="evoRow"></div>
-
-      <!-- Today missions -->
-      <div class="section-title">Hôm nay</div>
-      <div class="mission-card" id="missionCard">
-        <!-- rendered by JS -->
-      </div>
-
-      <!-- Character stats -->
-      <div class="section-title">Chỉ số</div>
-      <div class="stats-list" id="statsGrid"></div>
-
-      <!-- Actions -->
-      <div class="action-row">
-        <button class="btn-danger-sm" onclick="openEM()">🆘 Khẩn cấp</button>
-        <button class="btn-ghost-sm" onclick="openModal('relapseModal')">⚠ Log Relapse</button>
-      </div>
-
-    </section>
-
-    <!-- ══ PANEL: NHIỆM VỤ ══ -->
-    <section class="panel" id="panel-checkin">
-
-      <div class="section-title">Nhiệm vụ ngày <span id="questDayNum">1</span></div>
-      <div id="dqList"></div>
-
-      <div class="section-title" style="margin-top:24px">Nhiệm vụ tuần</div>
-      <div id="wqList"></div>
-
-      <div class="section-title" style="margin-top:24px">Phần thưởng</div>
-      <div id="rewardList"></div>
-
-      <div style="height:16px"></div>
-      <button class="btn-primary" onclick="submitDay()">Ghi nhận ngày → Nhận XP</button>
-      <button class="btn-ghost" onclick="openModal('relapseModal')" style="margin-top:8px;width:100%">⚠ Log Relapse</button>
-
-    </section>
-
-    <!-- ══ PANEL: BOSS ══ -->
-    <section class="panel" id="panel-boss">
-
-      <div class="section-title">Boss Battles</div>
-      <p class="section-note">Vượt qua trigger trong thực tế → nhấn Counter-Attack → Boss mất HP.</p>
-      <div id="bossList"></div>
-
-      <div class="section-title" style="margin-top:24px">Thành tích</div>
-      <div class="ach-grid" id="achGrid"></div>
-
-    </section>
-
-    <!-- ══ PANEL: HÀNH TRÌNH (Journal) ══ -->
-    <section class="panel" id="panel-journal">
-
-      <div class="jstats" id="jstats"></div>
-
-      <div class="compose-card">
-        <div class="jtype-row">
-          <button class="jtype active" onclick="setJType('daily',this)">📝 Ngày</button>
-          <button class="jtype win-jtype" onclick="setJType('win',this)">⚡ Win</button>
-          <button class="jtype urge-jtype" onclick="setJType('urge',this)">🔥 Urge</button>
-          <button class="jtype insight-jtype" onclick="setJType('insight',this)">💡 Nhận ra</button>
-          <button class="jtype relapse-jtype" onclick="setJType('relapse',this)">⚠ Relapse</button>
-        </div>
-        <textarea class="journal-ta" id="journalText" placeholder="Viết gì đó về hôm nay..." maxlength="2000" oninput="updateCharCount()"></textarea>
-        <div class="compose-footer">
-          <div>
-            <div class="char-count"><span id="charCount">0</span>/2000</div>
-            <div class="mood-row">
-              <button class="jmood" onclick="selectJMood('😵',this)">😵</button>
-              <button class="jmood" onclick="selectJMood('😔',this)">😔</button>
-              <button class="jmood" onclick="selectJMood('😐',this)">😐</button>
-              <button class="jmood" onclick="selectJMood('🙂',this)">🙂</button>
-              <button class="jmood" onclick="selectJMood('💪',this)">💪</button>
-            </div>
-          </div>
-          <button class="btn-save" onclick="saveJournalEntry()">Lưu</button>
+        <input type="range" min="1" max="10" value="5" id="intensity-slider" oninput="updateIntensityDisplay(this.value)" step="1">
+        <div style="text-align:center;margin-top:16px">
+          <span id="intensity-fires" style="font-size:20px">🔥🔥🔥🔥🔥</span>
+          <div style="font-family:'Be Vietnam Pro',sans-serif;font-size:32px;font-weight:800;color:var(--gold);margin-top:4px"><span id="intensity-val">5</span>/10</div>
         </div>
       </div>
+      <button class="btn-primary" onclick="startBreathe()">BẮT ĐẦU QUY TRÌNH 90 GIÂY</button>
+      <button class="btn-secondary" onclick="backToCheckin()" style="margin-top:8px">← Quay lại</button>
+    </div>
 
-      <div class="ai-row">
-        <span class="ai-lbl">AI phản hồi</span>
-        <div class="toggle" id="aiToggle" onclick="toggleAI()"><div class="toggle-thumb"></div></div>
+    <!-- Step 3: Breathe -->
+    <div class="breathe-screen" id="emg-breathe">
+      <div class="breathe-title">DỪNG LẠI</div>
+      <div class="breathe-sub">Não bạn cần 90 giây để reset</div>
+      <div class="breathe-circle">
+        <div class="breathe-phase-text" id="breathe-phase">Hít vào</div>
       </div>
-
-      <div class="filter-row">
-        <button class="filter-btn active" onclick="filterJ('all',this)">Tất cả</button>
-        <button class="filter-btn" onclick="filterJ('daily',this)">Ngày</button>
-        <button class="filter-btn" onclick="filterJ('win',this)">Win</button>
-        <button class="filter-btn" onclick="filterJ('urge',this)">Urge</button>
-        <button class="filter-btn" onclick="filterJ('insight',this)">Nhận ra</button>
-        <button class="filter-btn" onclick="filterJ('relapse',this)">Relapse</button>
+      <div class="timer" id="breathe-timer">90</div>
+      <div class="steps-list">
+        <div class="step-item" id="step-0"><div class="step-num">1</div><div class="step-text">Hít thở — theo vòng tròn</div></div>
+        <div class="step-item" id="step-1"><div class="step-num">2</div><div class="step-text">Đứng dậy, uống nước</div></div>
+        <div class="step-item" id="step-2"><div class="step-num">3</div><div class="step-text">Hít đất × 10</div></div>
+        <div class="step-item" id="step-3"><div class="step-num">4</div><div class="step-text">Đi bộ ra ngoài 2 phút</div></div>
+        <div class="step-item" id="step-4"><div class="step-num">5</div><div class="step-text">Kiểm tra lại cảm giác</div></div>
       </div>
+    </div>
 
-      <div id="journalEntries">
-        <div class="empty-state">Chưa có entry nào.<br>Viết entry đầu tiên ở trên.</div>
+    <!-- Step 4: Result -->
+    <div class="result-screen" id="emg-result">
+      <div class="result-circle">
+        <div style="font-size:32px">✓</div>
       </div>
+      <div class="result-q">Bạn còn muốn không?</div>
+      <button class="btn-primary" onclick="chooseOk()">TÔI ỔN RỒI</button>
+      <button class="btn-secondary" onclick="chooseStillWant()" style="margin-top:10px">Tôi vẫn muốn</button>
+      <div class="quote" style="margin-top:28px;font-size:15px;padding:0 8px">"Khoảng cách giữa muốn và làm — đó là tự do."</div>
+    </div>
 
-    </section>
+  </div>
 
-    <!-- ══ PANEL: DỮ LIỆU (History) ══ -->
-    <section class="panel" id="panel-history">
+  <!-- STILL WANT MODAL -->
+  <div id="still-want-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:300;display:none;align-items:center;justify-content:center;padding:24px">
+    <div style="background:var(--card);border-radius:var(--r);padding:24px;width:100%;max-width:340px">
+      <div style="font-family:'Be Vietnam Pro',sans-serif;font-size:16px;font-weight:700;color:var(--white);margin-bottom:20px;line-height:1.4">Bạn muốn làm gì?</div>
+      <button class="btn-primary" onclick="retryBreathe()">LÀM LẠI 90 GIÂY</button>
+      <button onclick="stillWantRelapse()" style="width:100%;background:transparent;border:1px solid rgba(123,86,73,.5);border-radius:14px;padding:14px;font-size:13px;color:rgba(200,155,109,.5);cursor:pointer;font-family:'Inter',sans-serif;margin-top:10px">Ghi nhận tái phạm</button>
+    </div>
+  </div>
 
-      <div class="section-title">Tổng quan 21 ngày</div>
-      <div class="grid21" id="grid21"></div>
+  <!-- BRAIN MILESTONE POPUP -->
+  <div id="brain-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:400;align-items:center;justify-content:center;padding:24px">
+    <div style="background:var(--card);border-radius:var(--r);padding:28px 24px;width:100%;max-width:320px;text-align:center">
+      <div style="font-size:28px;margin-bottom:12px">🧠</div>
+      <div style="font-family:'Be Vietnam Pro',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray);margin-bottom:8px">HỒI PHỤC MỚI</div>
+      <div id="brain-popup-day" style="font-family:'Be Vietnam Pro',sans-serif;font-size:22px;font-weight:800;color:var(--gold);margin-bottom:6px"></div>
+      <div id="brain-popup-text" style="font-size:14px;color:var(--cream);line-height:1.6;margin-bottom:24px"></div>
+      <button class="btn-primary" onclick="closeBrainPopup()" style="margin-top:0">Tiếp tục</button>
+    </div>
+  </div>
 
-      <div class="stats-strip" id="weekStats" style="margin-bottom:20px"></div>
-
-      <div class="section-title">Lịch sử</div>
-      <div id="narrativeHistory">
-        <div class="empty-state">Hoàn thành ngày đầu tiên để bắt đầu.</div>
+  <!-- TASK EDITOR MODAL -->
+  <div id="task-editor" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:100;padding:20px;overflow-y:auto">
+    <div style="background:var(--card);border-radius:var(--r);padding:20px;max-width:420px;margin:0 auto">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div class="label" style="margin:0">CHỈNH SỬA NHIỆM VỤ</div>
+        <button onclick="closeTaskEditor()" style="background:none;border:none;color:var(--gray);cursor:pointer;font-size:22px;line-height:1">×</button>
       </div>
+      <div id="editor-task-list"></div>
+      <button onclick="addNewTask()" style="width:100%;background:rgba(200,155,109,.1);border:1px dashed rgba(200,155,109,.3);border-radius:12px;padding:12px;color:var(--gold);font-family:'Be Vietnam Pro',sans-serif;font-size:13px;font-weight:600;cursor:pointer;margin-top:8px">+ Thêm nhiệm vụ</button>
+      <button onclick="saveTaskEditor()" class="btn-primary" style="margin-top:12px">LƯU</button>
+    </div>
+  </div>
 
-    </section>
+  <!-- DAY DETAIL MODAL -->
+  <div id="day-detail-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:150;padding:20px;align-items:flex-end;justify-content:center">
+    <div style="background:var(--card);border-radius:var(--r) var(--r) 0 0;padding:20px;width:100%;max-width:420px;max-height:85vh;overflow-y:auto">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div style="font-family:'Be Vietnam Pro',sans-serif;font-size:14px;font-weight:700;color:var(--white)" id="day-detail-title"></div>
+        <button onclick="closeDayDetail()" style="background:none;border:none;color:var(--gray);cursor:pointer;font-size:24px;line-height:1">×</button>
+      </div>
+      <div id="day-detail-body"></div>
+    </div>
+  </div>
 
-  </main>
+  <!-- DAY CLOSE MODAL -->
+  <div id="day-close-modal" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:200;overflow-y:auto">
+    <div style="max-width:420px;margin:0 auto;padding:40px 24px 40px">
+      <div style="font-family:'Be Vietnam Pro',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gray);margin-bottom:8px">NGHI THỨC</div>
+      <div style="font-family:'Be Vietnam Pro',sans-serif;font-size:28px;font-weight:800;color:var(--white);margin-bottom:32px">Kết thúc ngày</div>
+      <div style="margin-bottom:28px">
+        <div class="label">HÔM NAY</div>
+        <div id="day-close-summary" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+      <div style="margin-bottom:28px">
+        <div class="label">MẪU LẶP HÔM NAY</div>
+        <div id="day-close-patterns" style="color:var(--gray);font-size:14px;line-height:1.8"></div>
+      </div>
+      <div style="margin-bottom:36px">
+        <div class="label">NGÀY MAI CẦN NHỚ</div>
+        <div id="day-close-tips" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+      <button class="btn-primary" onclick="closeDayFinal()" style="font-size:14px;padding:18px">ĐÓNG NGÀY</button>
+      <button onclick="cancelDayClose()" style="width:100%;background:none;border:none;color:var(--gray);font-size:13px;padding:14px;cursor:pointer;font-family:'Inter',sans-serif;margin-top:4px">Chưa xong ngày</button>
+    </div>
+  </div>
 
-  <!-- BOTTOM NAV -->
-  <nav class="bottom-nav">
-    <button class="bni active" onclick="switchPanel('dashboard',this)">
-      <span class="bni-icon">⚔️</span>
-      <span class="bni-lbl">Nhân vật</span>
+  <!-- NAV -->
+  <nav class="nav">
+    <button class="nav-btn active" id="nav-home" onclick="gotoScreen('home')">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Trang chủ</span>
     </button>
-    <button class="bni" onclick="switchPanel('checkin',this)">
-      <span class="bni-icon">✅</span>
-      <span class="bni-lbl">Nhiệm vụ</span>
+    <button class="nav-btn" id="nav-progress" onclick="gotoScreen('progress')">
+      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <span>Tiến trình</span>
     </button>
-    <button class="bni" onclick="switchPanel('boss',this)">
-      <span class="bni-icon">💀</span>
-      <span class="bni-lbl">Boss</span>
-    </button>
-    <button class="bni" onclick="switchPanel('journal',this)">
-      <span class="bni-icon">✍️</span>
-      <span class="bni-lbl">Hành trình</span>
-    </button>
-    <button class="bni" onclick="switchPanel('history',this)">
-      <span class="bni-icon">📊</span>
-      <span class="bni-lbl">Dữ liệu</span>
+    <button class="nav-btn" id="nav-emergency" onclick="gotoScreen('emergency')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>Khẩn cấp</span>
     </button>
   </nav>
 
 </div>
-
 <script src="script.js"></script>
 </body>
 </html>
