@@ -251,3 +251,8 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
     transition-duration: 0.01ms !important;
   }
 }
+
+/* NOTIFICATION CARD */
+.notif-time-row{display:flex;align-items:center;gap:12px;padding:5px 0}
+.notif-time{font-family:'Be Vietnam Pro',sans-serif;font-size:12px;font-weight:700;color:var(--gold);min-width:40px}
+.notif-desc{font-size:12px;color:var(--gray)}

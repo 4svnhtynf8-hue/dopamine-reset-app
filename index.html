@@ -145,6 +145,19 @@
       <div id="trigger-list"><div style="color:var(--gray);font-size:13px">Dùng tab Khẩn cấp để ghi nhận trigger.</div></div>
     </div>
 
+    <div class="card" id="notif-card">
+      <div class="label">THÔNG BÁO NHẮC NHỞ</div>
+      <div id="notif-status-text" style="font-size:13px;color:var(--gray);line-height:1.6;margin-bottom:12px">Nhận nhắc nhở vào đầu ngày, cuối ngày và khung giờ nguy hiểm.</div>
+      <button id="notif-toggle-btn" onclick="handleNotifToggle()" class="commit-btn" style="margin-bottom:10px">BẬT THÔNG BÁO</button>
+      <div id="notif-schedule" style="display:none;border-top:1px solid rgba(255,255,255,.06);padding-top:10px;margin-top:2px">
+        <div class="notif-time-row"><span class="notif-time">07:00</span><span class="notif-desc">Đầu ngày</span></div>
+        <div class="notif-time-row"><span class="notif-time">15:00</span><span class="notif-desc">Khung giờ trống</span></div>
+        <div class="notif-time-row"><span class="notif-time">21:00</span><span class="notif-desc">Sau ca dạy</span></div>
+        <div class="notif-time-row"><span class="notif-time">22:30</span><span class="notif-desc">Kết thúc ngày</span></div>
+        <div class="notif-time-row"><span class="notif-time">23:30</span><span class="notif-desc">Thức khuya</span></div>
+      </div>
+    </div>
+
     <div style="padding:0 16px 20px">
       <button class="relapse-btn" onclick="confirmRelapse()">GHI NHẬN TÁI PHẠM</button>
     </div>

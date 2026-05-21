@@ -52,6 +52,7 @@ if (DATA.todayCommit === undefined) DATA.todayCommit = false;
 if (!DATA.dailyJournal)      DATA.dailyJournal = [];
 if (DATA.cravingToday === undefined) DATA.cravingToday = 0;
 if (!DATA.dailyCravingHistory) DATA.dailyCravingHistory = [];
+if (DATA.notificationEnabled === undefined) DATA.notificationEnabled = false;
 if (!DATA.seenMilestones) {
   DATA.seenMilestones = DATA.brainMilestoneSeen
     ? BRAIN_MILESTONES.filter(function(m){return m.day<=DATA.brainMilestoneSeen;}).map(function(m){return m.day;})
@@ -292,6 +293,7 @@ function renderProgress() {
   renderCalendar();
   renderCravingHistory();
   renderTriggerList();
+  renderNotifCard();
 }
 function renderCravingToday() {
   var n = DATA.cravingToday || 0;
@@ -706,7 +708,11 @@ function checkDateChange() {
 }
 function startRealtimeTick() {
   updateRealtimeUI();
-  setInterval(function(){ checkDateChange(); updateRealtimeUI(); }, 60000);
+  setInterval(function(){
+    checkDateChange();
+    updateRealtimeUI();
+    checkScheduledNotifications();
+  }, 60000);
 }
 document.addEventListener('visibilitychange', function(){
   if(document.visibilityState==='visible'){
@@ -729,6 +735,119 @@ if('serviceWorker' in navigator){
 /* ═══════════════════════════════════════════════════════
    INIT
    ═══════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   NOTIFICATION SYSTEM
+   Local-only. No backend. Graceful degradation.
+   ═══════════════════════════════════════════════════════ */
+
+var NOTIF_SCHEDULE = [
+  {id:'morning',    h:7,  m:0,  title:'21D RESET',                  body:'Bắt đầu ngày. Kéo thanh năng lượng và cam kết hôm nay.'},
+  {id:'trigger_15', h:15, m:0,  title:'Khung giờ nguy hiểm',         body:'Đừng để khoảng trống tự lấp đầy. Mở app nếu thấy cơn thèm lên.'},
+  {id:'trigger_21', h:21, m:0,  title:'Sau ca dạy / về nhà đêm',     body:'Đây là thời điểm dễ trượt. Chuẩn bị kết thúc ngày.'},
+  {id:'evening',    h:22, m:30, title:'Kết thúc ngày',               body:'Ghi nhận cảm nghĩ, số cơn thèm và đóng ngày.'},
+  {id:'latenight',  h:23, m:30, title:'Thức khuya nguy hiểm',        body:'Não thiếu ngủ dễ thương lượng. Đóng ngày và tránh màn hình.'}
+];
+
+function notifSupported() {
+  return typeof Notification !== 'undefined';
+}
+function notifGranted() {
+  return notifSupported() && Notification.permission === 'granted';
+}
+
+function sendLocalNotification(title, body) {
+  if (!notifGranted()) return;
+  try {
+    new Notification(title, {
+      body: body,
+      icon: 'icons/icon-192.png',
+      badge: 'icons/icon-192.png',
+      silent: false
+    });
+  } catch(e) {}
+}
+
+function getSentNotifs() {
+  try { return JSON.parse(localStorage.getItem('sentNotificationsByDate') || '{}'); } catch(e) { return {}; }
+}
+function saveSentNotifs(obj) {
+  localStorage.setItem('sentNotificationsByDate', JSON.stringify(obj));
+}
+
+function checkScheduledNotifications() {
+  if (!notifGranted()) return;
+  var d = new Date();
+  var today = todayKey();
+  var h = d.getHours(), m = d.getMinutes();
+  var sent = getSentNotifs();
+  if (!sent[today]) sent[today] = [];
+
+  NOTIF_SCHEDULE.forEach(function(n) {
+    if (h === n.h && m === n.m && sent[today].indexOf(n.id) < 0) {
+      sendLocalNotification(n.title, n.body);
+      sent[today].push(n.id);
+      saveSentNotifs(sent);
+    }
+  });
+
+  // Prune old dates (keep only last 7 days)
+  var keys = Object.keys(sent);
+  if (keys.length > 7) {
+    keys.sort();
+    keys.slice(0, keys.length - 7).forEach(function(k){ delete sent[k]; });
+    saveSentNotifs(sent);
+  }
+}
+
+function handleNotifToggle() {
+  if (!notifSupported()) return;
+  if (notifGranted()) {
+    // Already granted — toggle off in DATA
+    DATA.notificationEnabled = false;
+    saveData();
+    renderNotifCard();
+    return;
+  }
+  Notification.requestPermission().then(function(result) {
+    DATA.notificationEnabled = result === 'granted';
+    saveData();
+    renderNotifCard();
+  });
+}
+
+function renderNotifCard() {
+  var btn  = document.getElementById('notif-toggle-btn');
+  var txt  = document.getElementById('notif-status-text');
+  var sched = document.getElementById('notif-schedule');
+  if (!btn) return;
+
+  if (!notifSupported()) {
+    txt.textContent  = 'Thiết bị này chưa hỗ trợ thông báo PWA.';
+    btn.style.display = 'none';
+    return;
+  }
+  if (notifGranted() && DATA.notificationEnabled) {
+    txt.textContent  = '✓ Đã bật thông báo';
+    txt.style.color  = 'var(--gold)';
+    btn.textContent  = 'Tắt thông báo';
+    btn.style.color  = 'var(--gray)';
+    if (sched) sched.style.display = 'block';
+  } else if (Notification.permission === 'denied') {
+    txt.textContent = 'Bạn đã từ chối thông báo. Có thể bật lại trong cài đặt trình duyệt / iPhone.';
+    txt.style.color = 'var(--gray)';
+    btn.style.display = 'none';
+    if (sched) sched.style.display = 'none';
+  } else {
+    txt.textContent = 'Nhận nhắc nhở vào đầu ngày, cuối ngày và khung giờ nguy hiểm.';
+    txt.style.color = 'var(--gray)';
+    btn.textContent = 'BẬT THÔNG BÁO';
+    btn.style.color = '';
+    btn.style.display = '';
+    if (sched) sched.style.display = 'none';
+  }
+}
+
 initDay();
 renderHome();
 startRealtimeTick();
+renderNotifCard();
